@@ -1,0 +1,61 @@
+version: "3"
+
+services:
+  backend:
+    container_name: backend
+    depends_on:
+      - mysql
+    restart: always
+    build:
+      context: .
+      dockerfile: ./backend/Dockerfile
+    networks:
+      - sleact
+    # volumes:
+    # - mysql_vol1:/tmp/db
+    ports:
+      - "3095:3095" # 나중에 expose로 바꿔야 함
+    # env_file:
+    #   - .env
+
+  # frontend:
+  #   container_name: mariadb
+  #   restart: always
+  #   build:
+  #     context: .
+  #     dockerfile: ./requirements/mariadb/Dockerfile
+  #   networks:
+  #     - inception
+  #   volumes:
+  #     - mariadb_vol:/var/lib/mysql
+  #   expose:
+  #     - "3306"
+  #   env_file:
+  #     - .env
+
+  mysql:
+    container_name: mysql
+    restart: always
+    # image: mysql
+    build:
+      context: .
+      dockerfile: ./mysql/Dockerfile
+    networks:
+      - sleact
+    # volumes:
+    # - ./mysql:/etc/mysql/conf.d
+    #   - mysql_vol1:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=chanhyle
+
+networks:
+  sleact:
+    driver: bridge
+# volumes:
+#   mysql_vol1:
+#     driver_opts:
+#       type: volume
+#       o: "bind"
+#       device: "/Users/chanhyle/Documents/data"
