@@ -8,7 +8,7 @@
 ## 2. 패키지 설치
 
 - **npm i react react-dom**
-- **npm i -D typescript @types/react @types/react-dom @types/webpack @types/node**
+- **npm i -D typescript @types/react @types/react-dom @types/webpack @types/node @types/webpack-dev-server**
   - typescript 모듈
 - **npm i -D eslint**
   - 코드 검사 도구 : unused variable, typo 등을 잡아주는 역할
@@ -22,9 +22,15 @@
   - css로 변환해줄 style-loader, css-loader 설치
   - _babel이 index.html까지 직접 만들어주진 않음 => 직접 만들기_
     - tsx 파일에서 모든 것을 다 처리하려고 하는데, 사실 index.html이 담당하는 기능이 많음 => js 실행 이전의 모든 것들이 포함
-	  - 1.  성능 최적화 => js 파일이 매우 커짐(SSR, code splitting 이라는 해결책도 있지만)
+    - 1.  성능 최적화 => js 파일이 매우 커짐(SSR, code splitting 이라는 해결책도 있지만)
       - 2.  SEO
       - 3.  js 실행 이전의 핵심 css 처리
+- **npm i -D webpack-dev-server webpack-cli**
+  - hot reloading을 위한 서버 설치
+  - 프록시 역할도 할 수 있기 때문에 CORS 에러를 해결할 수도 있음
+- **npm i -D @pmmmwh/react-refresh-webpack-plugin react-refresh fork-ts-checker-webpack-plugin**
+  - @pmmmwh/react-refresh-webpack-plugin : hot reloading
+  - fork-ts-checker-webpack-plugin : ts 검사를 할 때 블로킹(직렬) 방식 대신, ts 검사와 webpack 실행을 동시에 할 수 있게 해줌(fork, 병렬)
 
 ## 3. npm install
 
@@ -74,7 +80,6 @@
   - import ../../Button.jsx => import @src/Button.jsx처럼 절대 경로로 표현 가능
 - ts-node 설정 : webpack은 ts 파일을 읽지 못하기 때문에
 
-
 ## 5. webpack.config.ts
 
 - ts -> js -> (babel) -> js
@@ -107,6 +112,7 @@
   - **devServer** : 프런트 개발 서버 설정
 
 ## 6. build
+
 - 1. **npx webpack**
   - webpack.config.ts 설정 파일에 따라서 /dist/app.js을 생성
   - _webpack은 ts 파일을 읽지 못함 => tsconfig.json에 추가 설정이 필요!_
@@ -116,11 +122,31 @@
   - **cross-env NODE_ENV=production webpack**
   - 배포 모드(production)으로 build를 하기 때문에, 배포에 최적화된 용량과 모듈만 설치하여 빌드
   - cross-env? NODE_ENV=production를 활성화하기 위해 Windows 환경에서 사용(Linux, Mac에서는 불필요)
-- 3. npm run dev 
+- 3. npm run dev
   - /dist/app.js를 생성하지 않고 개발 모드(developmen)로 개발 서버를 띄움
   - **webpack serve --env development**
 - **npm outdated** 명령어를 통해 구 버전의 모듈을 최신 버전으로 업데이트!
   - 모든 것을 할 필요는 없고 주로 _ts-node, webpack-dev-server_ 최신 버전으로 업데이트
-  - module@ver 형식으로 
+  - module@ver 형식으로
   - **npm i ts-node@10 webpack-dev-server@4 --force**
-  
+
+## 7. docker 설정
+
+- 추가 bridge 네트워크(sleact) 설정
+- 1. **mysql(database)**
+
+  - mysql을 설치할 때 필요한 root 비밀번호를 환경 변수로 추가 : MYSQL_ROOT_PASSWORD=chanhyle
+  - expose 3306
+
+- 2. **backend**
+
+  - depends_on : mysql이 실행된 후, backend 컨테이너 실행
+  - expose 3095
+  - hot reloading을 설정할 필요가 없기 때문에(이미 개발 완료), Dockerfile에서 npm install
+  - 스키마 생성 => npm run dev & => npm run stop => 더미 데이터 넣기 => npm run dev
+
+- 3. **frontend**
+  - ports : 3090:3090
+  - hot reloading을 설정
+    - 컨테이너가 생성된 이후(setup.sh) npm install
+    - 로컬 볼륨 바운드 마운트 : $PWD/frontend:/app/frontend

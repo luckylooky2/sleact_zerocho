@@ -24,8 +24,8 @@ services:
       dockerfile: ./frontend/Dockerfile
     networks:
       - sleact
-    # volumes:
-    #   - mariadb_vol:/var/lib/mysql
+    volumes:
+      - $PWD/frontend:/app/frontend
     ports:
       - "3090:3090"
 
