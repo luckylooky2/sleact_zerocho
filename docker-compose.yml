@@ -11,12 +11,8 @@ services:
       dockerfile: ./backend/Dockerfile
     networks:
       - sleact
-    # volumes:
-    # - mysql_vol1:/tmp/db
     ports:
-      - "3095:3095" # 나중에 expose로 바꿔야 함
-    # env_file:
-    #   - .env
+      - "3095:3095"
 
   # frontend:
   #   container_name: mariadb
@@ -49,6 +45,7 @@ services:
       - "3306:3306"
     environment:
       - MYSQL_ROOT_PASSWORD=chanhyle
+      - MYSQL_DATABASE=sleact
 
 networks:
   sleact:
