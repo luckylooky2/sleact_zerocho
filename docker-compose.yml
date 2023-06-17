@@ -14,20 +14,20 @@ services:
     ports:
       - "3095:3095"
 
-  # frontend:
-  #   container_name: mariadb
-  #   restart: always
-  #   build:
-  #     context: .
-  #     dockerfile: ./requirements/mariadb/Dockerfile
-  #   networks:
-  #     - inception
-  #   volumes:
-  #     - mariadb_vol:/var/lib/mysql
-  #   expose:
-  #     - "3306"
-  #   env_file:
-  #     - .env
+  frontend:
+    container_name: frontend
+    depends_on:
+      - backend
+    restart: always
+    build:
+      context: .
+      dockerfile: ./frontend/Dockerfile
+    networks:
+      - sleact
+    # volumes:
+    #   - mariadb_vol:/var/lib/mysql
+    ports:
+      - "3090:3090"
 
   mysql:
     container_name: mysql
@@ -41,11 +41,10 @@ services:
     # volumes:
     # - ./mysql:/etc/mysql/conf.d
     #   - mysql_vol1:/var/lib/mysql
-    ports:
-      - "3306:3306"
+    expose:
+      - "3306"
     environment:
       - MYSQL_ROOT_PASSWORD=chanhyle
-      - MYSQL_DATABASE=sleact
 
 networks:
   sleact:
