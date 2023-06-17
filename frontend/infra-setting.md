@@ -19,6 +19,7 @@
   - .prettierrc 파일 생성 => printWidth(글자 수), tabWidth(tab space 개수), singleQuote(string quote), trailingComma(마지막에 ,), semi(마지막에 ;)
 - **npm i -D webpack @babel/core babel-loader @babel/preset-env @babel/preset-react @babel/preset-typescript style-loader css-loader**
   - js로 변환해줄 webpack, babel 설치
+  - @babel/preset-env(최신문법 변환) @babel/preset-react(리액트 jsx 변환), @babel/preset-typescript(타입스크립트 변환)
   - css로 변환해줄 style-loader, css-loader 설치
   - _babel이 index.html까지 직접 만들어주진 않음 => 직접 만들기_
     - tsx 파일에서 모든 것을 다 처리하려고 하는데, 사실 index.html이 담당하는 기능이 많음 => js 실행 이전의 모든 것들이 포함
@@ -99,12 +100,12 @@
   - **entry** : 입력(다중 입력 가능 => 다중 출력)
     - { app: "./client", app2: "./client , app3: "./client" }
     - 프로퍼티는 output의 [name]과 연결
-  - **module** : 입력 -> module의 rules를 적용
+  - **module** : 입력 -> module의 rules를 적용하여 js 파일로 합침
     - rules : []
       - test : /\.tsx?$/, /\.css?$/(style-loader, css-loader => css도 js로 변환해줌)
       - loader : "babel-loader" 사용(최신 문법을 예전 브라우저에서도 호환되는 문법으로 변환)
       - options : "@babel/preset-env"(브라우저 특정), "@babel/preset-react", "@babel/preset-typescript"
-  - **plugins** : 플러그인 사용
+  - **plugins** : js 파일로 합치는 중 부가적인 효과를 줌
     - new ForkTsCheckerWebpackPlugin() : typescript에 필요
     - new webpack.EnvironmentPlugin() : react에서 *NODE_ENV*라는 변수를 사용할 수 있게 만들어줌(원래는 node runtime에서만 사용 가능)
   - **output** : module의 rules를 적용 -> 출력
@@ -127,7 +128,6 @@
   - **webpack serve --env development**
 - **npm outdated** 명령어를 통해 구 버전의 모듈을 최신 버전으로 업데이트!
   - 모든 것을 할 필요는 없고 주로 _ts-node, webpack-dev-server_ 최신 버전으로 업데이트
-  - module@ver 형식으로
   - **npm i ts-node@10 webpack-dev-server@4 --force**
 
 ## 7. docker 설정
@@ -146,6 +146,7 @@
   - 스키마 생성 => npm run dev & => npm run stop => 더미 데이터 넣기 => npm run dev
 
 - 3. **frontend**
+
   - ports : 3090:3090
   - hot reloading을 설정
     - 컨테이너가 생성된 이후(setup.sh) npm install
