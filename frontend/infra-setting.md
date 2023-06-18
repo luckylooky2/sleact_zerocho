@@ -10,6 +10,8 @@
 - **npm i react react-dom**
 - **npm i -D typescript @types/react @types/react-dom @types/webpack @types/node @types/webpack-dev-server**
   - typescript 모듈
+  - 기본적으로 type 추론을 하기 때문에, 굳이 type을 쓰지 않아도 되는 곳에는 쓰지 않아도 됨!
+  - e.g. const Login : FC = () => {}
 - **npm i -D eslint**
   - 코드 검사 도구 : unused variable, typo 등을 잡아주는 역할
   - .eslintrc 파일 생성
@@ -111,6 +113,10 @@
   - **output** : module의 rules를 적용 -> 출력
     - 생성할 js 파일들의 경로를 지정 : 보통 "./dist"
   - **devServer** : 프런트 개발 서버 설정
+    - "historyApiFallback" : true
+      - 개발 서버에서는 브라우저에서 /login으로 요청했을 떄, 404 응답을 index.html로 보내라는 설정이 되어 있지 않음
+      - 그렇기 때문에 Cannot GET /login과 같은 404 애러가 발생(server-side routing) => hot reloading에 방해가 됨
+      - index.html만 받아오면, react-router가 자체 history API를 이용하여 path에 따라 컴포넌트를 리렌더링
 
 ## 6. build
 
