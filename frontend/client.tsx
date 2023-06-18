@@ -5,7 +5,9 @@ import { render } from 'react-dom';
 import { BrowserRouter } from 'react-router-dom';
 import axios from 'axios';
 
-import App from './layouts/App';
+import App from '@layouts/App';
+
+// client.tsx는 cra에서 index.tsx 역할
 
 axios.defaults.withCredentials = true;
 axios.defaults.baseURL =
