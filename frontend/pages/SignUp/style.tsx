@@ -14,6 +14,12 @@ export const Header = styled.header`
   letter-spacing: -0.75px; // 자간
   margin-top: 50px;
   margin-bottom: 50px;
+
+  & > img {
+    height: 35px;
+    width: 35px;
+    margin-right: 20px;
+  }
 `;
 
 export const Form = styled.form`

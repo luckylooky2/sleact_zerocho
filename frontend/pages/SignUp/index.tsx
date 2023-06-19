@@ -72,8 +72,9 @@ const SignUp = () => {
         // 현재는 CORS 백엔드 설정을 해놓았기 때문에 CORS 에러가 발생하지 않음
         // CORS : 프런트 서버에서 가져온 리소스가, 프런트 서버가 아닌 다른 origin으로 요청을 보낸 경우 브라우저에서 이 요청을 강제로 막는 기능
         // 해결
-        // 1. 백엔드 서버 설정 : cors origin: true
+        // 1. 백엔드 서버 설정 : cors origin: true => OPTIONS 요청 같이 보냄(cross origin)
         // 2. 프런트 서버 프록시 설정 : 일단 프런트 서버로 요청을 보내고(CORS 해결), 프런트 서버에서 백 서버로 요청을 보내는 방법
+        // - OPTIONS 요청을 보내지 않음(same origin)
         // - 단, 이 방법은 프런트, 백 둘 다 localhost일 때만 가능(42Partner)
         // - 프런트는 localhost인데 백은 실제 서버라고 하면 proxy 방법은 사용하지 못함
         axios
@@ -96,7 +97,10 @@ const SignUp = () => {
 
   return (
     <div id="container">
-      <Header>Sleact</Header>
+      <Header>
+        <img src="https://a.slack-edge.com/cebaa/img/ico/favicon.ico" alt="slack_favicon" />
+        Sleact
+      </Header>
       <Form onSubmit={onSubmitSignUp}>
         <Label id="email-label">
           <span>이메일 주소</span>
