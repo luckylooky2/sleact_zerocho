@@ -8,10 +8,10 @@ import styled from '@emotion/styled';
 export const Header = styled.header`
   text-align: center;
   font-family: Slack-Larsseit, Helvetica Neue, Helvetica, Segoe UI, Tahoma, Arial, sans-serif;
-  font-weight: 700;
+  font-weight: 700; // 글자 굵이
   font-size: 48px;
   line-height: 46px;
-  letter-spacing: -0.75px;
+  letter-spacing: -0.75px; // 자간
   margin-top: 50px;
   margin-bottom: 50px;
 `;
@@ -38,8 +38,10 @@ export const Label = styled.label`
 
 export const Input = styled.input`
   border-radius: 4px;
+  // --saf-0 변수를 사용하여 rgba() 함수를 통해 색상 값을 설정합니다.
   --saf-0: rgba(var(--sk_foreground_high_solid, 134, 134, 134), 1);
   border: 1px solid var(--saf-0);
+  // 요소의 상태 변화를 부드럽게 애니메이션화하는 효과를 추가하는데 사용
   transition: border 80ms ease-out, box-shadow 80ms ease-out;
   box-sizing: border-box;
   margin: 0 0 20px;
@@ -71,8 +73,11 @@ export const Button = styled.button`
   height: 44px;
   min-width: 96px;
   padding: 0 16px 3px;
+  // 요소의 상태 변화를 부드럽게 애니메이션화하는 효과를 추가하는데 사용
   transition: all 80ms linear;
+  // 요소의 텍스트 내용은 마우스로 드래그하여 선택할 수 없게 됨(일부 브라우저에서만 동작할 수 있음)
   user-select: none;
+  // 요소에 포커스가 될 때 나타나는 외곽선을 제거하는 역할
   outline: none;
   cursor: pointer;
   border-radius: 4px;
@@ -82,6 +87,8 @@ export const Button = styled.button`
     background-color: rgba(74, 21, 75, 0.9);
     border: none;
   }
+
+  // button이 focus될 때는 클릭되었을 때를 말함
   &:focus {
     --saf-0: rgba(var(--sk_highlight, 18, 100, 163), 1);
     box-shadow: 0 0 0 1px var(--saf-0), 0 0 0 5px rgba(29, 155, 209, 0.3);
