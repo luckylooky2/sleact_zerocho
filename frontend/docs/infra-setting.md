@@ -142,6 +142,7 @@
 - 1. **mysql(database)**
 
   - mysql을 설치할 때 필요한 root 비밀번호를 환경 변수로 추가 : MYSQL_ROOT_PASSWORD=chanhyle
+  - mysql utf-8 설정을 위한 my.cnf 복사
   - expose 3306
 
 - 2. **backend**
@@ -157,3 +158,12 @@
   - hot reloading을 설정
     - 컨테이너가 생성된 이후(setup.sh) npm install
     - 로컬 볼륨 바운드 마운트 : $PWD/frontend:/app/frontend
+
+## 8. .env 설정
+
+- 1. backend
+
+  - COOKIE_SECRET=sleactcookie
+  - MYSQL_PASSWORD=
+
+- 2. frontend
