@@ -3,6 +3,9 @@ import { Header, Form, Label, Input, Button, Error, Success, LinkContainer } fro
 import useInput from '@hooks/useInput';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
+import useSWR from 'swr';
+import fetcher from '@utils/fetcher';
+import { Redirect } from 'react-router-dom';
 
 // redux를 사용하는 이유
 // - 1. 전체(전역)적인 상태를 관리
@@ -33,6 +36,11 @@ const SignUp = () => {
   const [nicknameError, setNicknameError] = useState(false);
   const [signUpError, setSignUpError] = useState('');
   const [signUpSuccess, setSignUpSuccess] = useState(false);
+
+  // 로그인 이후, 다시 회원가입으로 접근하기 위해 막는 장치
+  const { data, isLoading, error, mutate } = useSWR('http://localhost:3095/api/users', fetcher, {
+    revalidateOnMount: true,
+  });
 
   // const onChangeEmail = useCallback((e) => {
   //   setEmail(e.target.value);
@@ -101,6 +109,16 @@ const SignUp = () => {
     },
     [email, nickname, password, passwordCheck, missmatchError], // 넣는 기준? 매개 변수(x), 함수 내에서 사용한 외부 변수(o)
   );
+
+  // redirect 될 때, 깜빡 거리는 것은 loading 화면으로 해결하자!
+  // isLoading으로는 안 되나..?
+  if (data === undefined) {
+    return <div>로딩 중...</div>;
+  }
+
+  if (data) {
+    return <Redirect to="/workspace/channel" />;
+  }
 
   return (
     <div id="container">

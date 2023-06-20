@@ -68,7 +68,7 @@ const Login = () => {
   // - SWRConfig의 provider 옵션으로 이 동작을 커스터마이징 할 수도 있음
 
   const { data, isLoading, error, mutate } = useSWR('http://localhost:3095/api/users', fetcher, {
-    refreshInterval: 500,
+    revalidateOnMount: true,
   });
 
   // data : undefined / isLoading : true
@@ -99,6 +99,7 @@ const Login = () => {
           // mutate()를 호출하면, 리렌더링 되면서 data가 최신화(data : {id: 1, nickname: 'chanhyle', email: 'luckylooky2@naver.com', Workspaces: Array(1)})
           // **즉, mutate()를 호출함으로써 내가 원할 때 data를 최신화할 수 있음***
           // cf> mutate()를 호출하기 전, 리렌더링에 민감한 로직이 있는지 확인!
+          // 강의) 실행하면 => useSWR() 실행 => data, error 값이 바뀜 => 자동으로 컴포넌트 리렌더링
           mutate();
         })
         .catch((error) => {
@@ -108,6 +109,19 @@ const Login = () => {
     },
     [email, password],
   );
+
+  // redirect 될 때, 깜빡 거리는 것은 loading 화면으로 해결하자!
+  // isLoading으로는 안 되나..?
+  if (data === undefined) {
+    return <div>로딩 중...</div>;
+  }
+
+  // 로그인 성공 후(mutate)에는 리렌더링이 되며 자동으로 channel로 redirect
+  // ***return 구문은 항상 hooks(useCallback, useMemo ...)보다 아래 있어야 함*** => return 바로 위에 있다고 생각하면 될 듯
+  // 아니라면 에러 발생 => 어떤 에러인지...?
+  if (data) {
+    return <Redirect to="/workspace/channel" />;
+  }
 
   return (
     <div id="container">
