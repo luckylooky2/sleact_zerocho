@@ -77,6 +77,13 @@ const SignUp = () => {
         // - OPTIONS 요청을 보내지 않음(same origin)
         // - 단, 이 방법은 프런트, 백 둘 다 localhost일 때만 가능(42Partner)
         // - 프런트는 localhost인데 백은 실제 서버라고 하면 proxy 방법은 사용하지 못함
+        // Postman과 같은 프로그램에서 CORS 오류가 발생하지 않는 이유?
+        // - CORS는 브라우저에서 발생시키는 오류이기 때문
+
+        // 또 하나의 문제
+        // withCredential : 프런트 서버 주소와 백 서버 주소가 다른 경우, cookie 전달이 불가능(브라우저 기본 옵션?)
+        // **로그인은 브라우저에 저장된 쿠키를 프런트에서 백으로 보내서 확인하는 과정!**
+        // 해결 : axios 요청 config 매개 변수 자리에 { withCredential: true }를 설정
         axios
           // { email : email, nickname : nickname, password : password }가 아니라 { email, nickname, password }?
           // 객체의 속성을 명확하게 식별하고 가독성을 높이기 위해 가능한한 키를 명시적으로 지정하는 것이 좋음
