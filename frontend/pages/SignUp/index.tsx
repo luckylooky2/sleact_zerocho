@@ -112,7 +112,7 @@ const SignUp = () => {
 
   // redirect 될 때, 깜빡 거리는 것은 loading 화면으로 해결하자!
   // isLoading으로는 안 되나..?
-  if (data === undefined) {
+  if (isLoading) {
     return <div>로딩 중...</div>;
   }
 

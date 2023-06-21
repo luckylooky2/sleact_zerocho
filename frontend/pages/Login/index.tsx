@@ -3,7 +3,9 @@ import { Header, Form, Label, Input, Button, Error, Success, LinkContainer } fro
 import axios from 'axios';
 import { Redirect, Link } from 'react-router-dom';
 import useInput from '@hooks/useInput';
-import useSWR from 'swr';
+// Global Mutate : 여기 있는 mutate는 key를 이용하여 범용적으로 사용할 수 있음
+// e.g. mutate('http://localhost:3095/api/users', false)
+import useSWR, { mutate } from 'swr';
 import fetcher from '@utils/fetcher';
 
 // 로그아웃하는 방법(세션)
@@ -16,7 +18,7 @@ import fetcher from '@utils/fetcher';
 // - cf> Java : JSESSIONID
 
 const Login = () => {
-  const [logInError, setLogInError] = useState(false);
+  const [logInError, setLogInError] = useState('');
   const [email, onChangeEmail, setEmail] = useInput('');
   const [password, onChangePassword, setPassword] = useInput('');
 
@@ -47,11 +49,41 @@ const Login = () => {
   // - { revalidateOnMount: false } => 컴포넌트가 마운트될 때, 리렌더링을 막을 수 있음
   // 5. **주기적으로 호출은 되지만, 캐시에서만 불러오는 기간을 설정하기**
   // - 이 시간 범위내에 동일 키를 사용하는 *요청* 중복 제거(밀리초)
-  // - 요청 자체를 안 보내고 캐시에서 바로 가져오는 것?
+  // - 해당 시간 동안 어떠한 컴포넌트에서 useSWR로 아무리 많이 요청을 보내도, 요청 자체를 안 보내고 캐시에서 바로 가져오는 것
+  // - 이런 이유로 다른 컴포넌트에서 dedupingInterval을 막 쓴다고 해도 괜찮음
+  // - 데이터가 최신으로 유지되어야 하는 경우, 짧게 설정
   // - { dedupingInterval: 2000 }
 
   // GraphQL과 함께 사용하기
   // - useSWR을 사용할 필요가 없음, Apollo가 비슷한 역할을 하기 때문
+
+  // revalidate vs mutate
+  // swr은 데이터를 저장해줘서 편하긴 한데, **요청을 많이 보내는 것을 막아야 함** => mutate()를 자주 사용하자
+  // revalidate : 서버로 요청을 다시 보내서, 데이터를 _가져오는_ 것
+  // - 이미 axios.response로 받아온 데이터를 버리고 => useSWR(즉, GET 요청)을 통해 => data를 갱신
+  // mutate : 서버로 요청을 다시 보내지 않고, 데이터를 _수정_하는 것
+  // - 버전 업데이트로 revalidate는 제거, mutate가 기본적으로 revalidate처럼 동작
+  // - option : { revalidate : false }
+  // - default => 서버 요청 없이 data를 바꾸고, 나중에 바뀐 data가 유효한지 서버 요청으로 점검 => 이 점검을 하지 않을 수 있음
+  // - 즉, axios.response로 받아온 데이터로 data를 갱신
+  // e.g. mutate(response.data, { revalidate : false })
+
+  // 공통적으로 revalidate라는 뜻은 : 현재 data에 대한 유효성을 점검하기 위해 서버에 재요청 / 컴포넌트 리렌더링하는 것!
+
+  // mutate가 중요한 이유? Optimistic UI가 가능해짐
+  // - Optimistic UI : 요청이 성공할 것을 가정하여, UI를 성공한 상태로 먼저 바꾸어 놓고 요청을 나중에 하는 방법
+  // - e.g. mutate(data, { revalidate: false }); axios.get().then(() => mutate()) ;
+  // - Pessimistic UI : 요청이 실패할 것을 가정하여, 요청의 결과에 따라 상태를 바꾸는 방법
+  // - e.g. axios.get().then(() => mutate());
+  // - 성공할 확률이 매우 높은 요청은 Optimistic UI를 적용하는 것이 사용자 반응성을 개선하는데 오히려 효과가 좋음(실패할 확률이 그만큼 낮기 때문에)
+  // - e.g. 인스타그램 좋아요 버튼 : 버튼을 누르면 mutate()로 먼저 좋아요를 설정하고, 이후 요청하는 방법
+  // - if 성공) 결과적으로는 같으니 문제 없음
+  // - if 실패) 실패 메시지를 띄우고, 설정된 좋아요를 취소하거나 새로고침을 통해 원래대로 복구
+
+  // swr은 비동기 요청에 제한되지 않는다.
+  // - localStorage로부터 데이터를 가져올 수도 있음!
+  // - 즉, 전역 스토리지 역할을 할 수 있기 때문에, redux를 대체할 가능성이 있음
+  // - e.g. const { data } = useSWR('hello', (key) => { localStorage.setItem('data', key); return localStorage.getItem('data'); });
 
   // data : false / isLoading : false
   // Q. 처음엔 data === false인가?
@@ -85,7 +117,7 @@ const Login = () => {
       e.preventDefault();
       // 1. loading
       // setState()를 호출하기 때문에 어쨌든 컴포넌트가 리렌더링되는 효과도 있음
-      setLogInError(false);
+      setLogInError('');
       // 백엔드는 여기서 데이터를 받기 때문에 로그인 여부를 알 수 있음
       // 그럼 프런트는 로그인 여부를 어떻게 알 수 있나?
       // ***로그인에 성공하면 응답으로 로그인 정보를 보내줌 => 보통 Redux에 저장***
@@ -95,15 +127,22 @@ const Login = () => {
       axios
         .post('http://localhost:3095/api/users/login', { email, password }, { withCredentials: true })
         .then((response) => {
+          // Bound Mutate
           // mutate()를 호출하지 않으면, data가 최신화되지 않음(data : false)
           // mutate()를 호출하면, 리렌더링 되면서 data가 최신화(data : {id: 1, nickname: 'chanhyle', email: 'luckylooky2@naver.com', Workspaces: Array(1)})
           // **즉, mutate()를 호출함으로써 내가 원할 때 data를 최신화할 수 있음***
           // cf> mutate()를 호출하기 전, 리렌더링에 민감한 로직이 있는지 확인!
-          // 강의) 실행하면 => useSWR() 실행 => data, error 값이 바뀜 => 자동으로 컴포넌트 리렌더링
-          mutate();
+          // 강의) mutate()를 실행하면 => 먼저 data, error 값이 바뀜 => 자동으로 컴포넌트 리렌더링
+          // 이미 axios.response로 받아온 데이터를 버리고 => useSWR(즉, GET 요청)을 통해 => data를 갱신
+          // mutate();
+
+          // shouldRevalidate : false
+          // 새로운 GET 요청 없이 data를 갱신 => Optimistic UI
+          // cf> 호출하였는데, GET /api/users 요청이 실행된 이유는 Workspace에서 GET 요청을 했기 때문!
+          mutate(response.data, { revalidate: false });
         })
         .catch((error) => {
-          setLogInError(error.response.data.statusCode === 401);
+          setLogInError(error.response.data);
         })
         .finally(() => {});
     },
@@ -112,7 +151,8 @@ const Login = () => {
 
   // redirect 될 때, 깜빡 거리는 것은 loading 화면으로 해결하자!
   // isLoading으로는 안 되나..?
-  if (data === undefined) {
+  // cf> if (data) 로 설정하면, data === false인 경우에 의도와 다른 결과가 출력
+  if (isLoading) {
     return <div>로딩 중...</div>;
   }
 
@@ -141,7 +181,7 @@ const Login = () => {
           <div>
             <Input type="password" id="password" name="password" value={password} onChange={onChangePassword} />
           </div>
-          {/* {logInError && <Error>이메일과 비밀번호 조합이 일치하지 않습니다.</Error>} */}
+          {logInError && <Error>{logInError}</Error>}
         </Label>
         <Button type="submit">로그인</Button>
       </Form>

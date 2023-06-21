@@ -26,7 +26,10 @@ const Workspace: FC = ({ children }) => {
       .then(() => {
         // 로그아웃한 결과를 최신화하여 data를 fetching
         // 실행하면 => useSWR() 실행 => data, error 값이 바뀜 => 자동으로 컴포넌트 리렌더링
-        mutate();
+        // mutate();
+
+        // revalidate : false
+        mutate(false, { revalidate: false });
       });
   }, []);
 
