@@ -53,6 +53,7 @@ const Login = () => {
   // - 이런 이유로 다른 컴포넌트에서 dedupingInterval을 막 쓴다고 해도 괜찮음
   // - 데이터가 최신으로 유지되어야 하는 경우, 짧게 설정
   // - { dedupingInterval: 2000 }
+  // https://velog.io/@soryeongk/SWRBasic
 
   // GraphQL과 함께 사용하기
   // - useSWR을 사용할 필요가 없음, Apollo가 비슷한 역할을 하기 때문
