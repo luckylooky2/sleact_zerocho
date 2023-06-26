@@ -6,11 +6,9 @@ import { Container, Header } from '@pages/Channel/style';
 // 굳이 props로 명시하지 않아도 됨!
 const Channel = () => {
   return (
-    <Workspace>
-      <Container>
-        <Header>채널</Header>
-      </Container>
-    </Workspace>
+    <Container>
+      <Header>채널</Header>
+    </Container>
   );
 };
 

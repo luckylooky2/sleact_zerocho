@@ -8,7 +8,7 @@ import { CloseModalButton, CreateMenu } from '@components/Menu/style';
 // 2. type interface를 작성
 interface Props {
   show: boolean;
-  onCloseModal: () => void;
+  onCloseModal: (e: any) => void; // 어쩔 수 없이 any 사용? ts 컴파일러의 추천
   style: CSSProperties;
   closeButton?: boolean; // ?
 }
@@ -31,13 +31,18 @@ const Menu: FC<Props> = ({ children, style, show, onCloseModal, closeButton }) =
   // &nbsp;( ), &times;(x), &lt;(<) 등...
   // https://blog.outsider.ne.kr/380
 
+  // Menu 컴포넌트 밖에서 { show ? <Menu /> : null } 와 같은 효과
+  if (!show) return null;
+
   return (
+    // <div onClick={stopPropagation}>
     <CreateMenu onClick={onCloseModal}>
       <div onClick={stopPropagation} style={style}>
         {closeButton && <CloseModalButton onClick={onCloseModal}>&times;</CloseModalButton>}
         {children}
       </div>
     </CreateMenu>
+    // </div>
   );
 };
 

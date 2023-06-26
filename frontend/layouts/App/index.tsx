@@ -6,8 +6,9 @@ import { Switch, Route, Redirect } from 'react-router';
 // code splitting : 어떠한 페이지에서라도 할 수 있음
 const Login = loadable(() => import('@pages/Login'));
 const SignUp = loadable(() => import('@pages/SignUp'));
-const Channel = loadable(() => import('@pages/Channel')); // workspace layout을 감싼 channel 컴포넌트
-const DirectMessage = loadable(() => import('@pages/DirectMessage')); // workspace layout을 감싼 channel 컴포넌트
+// const Channel = loadable(() => import('@pages/Channel')); // workspace layout을 감싼 channel 컴포넌트
+// const DirectMessage = loadable(() => import('@pages/DirectMessage')); // workspace layout을 감싼 channel 컴포넌트
+const Workspace = loadable(() => import('@layouts/Workspace'));
 
 // 중첩 라우팅
 // - 현재 방법? 각각 페이지에 Workspace 컴포넌트를 children props로 적용하여, 각각 라우팅
@@ -25,8 +26,9 @@ const App = () => {
       <Redirect exact path="/" to="/login" />
       <Route path="/login" component={Login} />
       <Route path="/signup" component={SignUp} />
-      <Route path="/workspace/channel" component={Channel} />
-      <Route path="/workspace/dm" component={DirectMessage} />
+      {/* <Route path="/workspace/channel" component={Channel} />
+      <Route path="/workspace/dm" component={DirectMessage} /> */}
+      <Route path="/workspace/:workspace" component={Workspace} />
     </Switch>
   );
 };

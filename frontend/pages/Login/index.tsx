@@ -159,9 +159,10 @@ const Login = () => {
 
   // 로그인 성공 후(mutate)에는 리렌더링이 되며 자동으로 channel로 redirect
   // ***return 구문은 항상 hooks(useCallback, useMemo ...)보다 아래 있어야 함*** => return 바로 위에 있다고 생각하면 될 듯
-  // 아니라면 에러 발생 => 어떤 에러인지...?
+  // Invalid hook call Error 발생
+  // - when? return 아래 / 반복문, 조건문 안에 hooks가 존재할 때
   if (data) {
-    return <Redirect to="/workspace/channel" />;
+    return <Redirect to="/workspace/sleact/channel/일반" />;
   }
 
   return (
