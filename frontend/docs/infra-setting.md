@@ -161,6 +161,7 @@
 
 ## 8. .env 설정
 
+- **npm i dotenv**
 - 1. backend
 
   - COOKIE_SECRET=sleactcookie
