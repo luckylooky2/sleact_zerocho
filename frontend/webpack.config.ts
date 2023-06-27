@@ -4,8 +4,9 @@ import webpack, { Configuration as WebpackConfiguration } from 'webpack';
 import { Configuration as WebpackDevServerConfiguration } from 'webpack-dev-server';
 // dotenv는 Webpack 라이브러리의 일종으로, .env 파일을 통해 process.env 환경변수를 로드하는 zero-dependency 모듈
 // https://abangpa1ace.tistory.com/272
+// https://webpack.kr/plugins/environment-plugin/
 // 1. 설치 : npm i --save dotenv
-// 2. import dotenv from 'dotenv'; dotenv.config();
+// 2. import 및 기본 설정(path, encoding 등...)
 import dotenv from 'dotenv';
 
 dotenv.config({ path: `./.env` });
@@ -78,6 +79,10 @@ const config: Configuration = {
       // },
     }),
     // 3. DefinePlugin or EnvironmentPlugin으로 적용
+    // - .env 파일의 변수들이 추가됐지만 이를 React 환경에서 사용할 수 없음
+    // - node runtime에만 사용가능한 이 변수들을, JS context에서 사용하기 위해 빌드 타임에 선언을 해주는 단계가 필요
+    // - DefinePlugin or EnvironmentPlugin에서 설정한 아래 문자열 값을 전역 변수 형태로 선언하여 사용
+    // - cf> 이는, Webpack의 빌드타임에서만 활용되며, 브라우저 런타임에서는 사용할 수 없다!
     new webpack.EnvironmentPlugin({
       NODE_ENV: isDevelopment ? 'development' : 'production',
       REACT_APP_API_URL: false,
