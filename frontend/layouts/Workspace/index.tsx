@@ -55,7 +55,7 @@ const Workspace: FC = ({ children }) => {
     isLoading,
     error,
     mutate,
-  } = useSWR<IUser | false>('http://localhost:3095/api/users', fetcher, {
+  } = useSWR<IUser | false>(`${process.env.REACT_APP_API_URL}/api/users`, fetcher, {
     revalidateOnMount: true,
   });
 
@@ -65,7 +65,7 @@ const Workspace: FC = ({ children }) => {
   // e.g. userData ? "" : null
   // - userData가 없으면(로그인하지 않았으면) swr이 요청을 보내지 않음
   const { data: channelData } = useSWR<IChannel[]>(
-    userData ? `http://localhost:3095/api/workspaces/${workspace}/channels` : null,
+    userData ? `${process.env.REACT_APP_API_URL}/api/workspaces/${workspace}/channels` : null,
     fetcher,
     {
       revalidateOnMount: true,
@@ -86,7 +86,7 @@ const Workspace: FC = ({ children }) => {
 
   const onClickLogout = useCallback(() => {
     axios
-      .post('http://localhost:3095/api/users/logout', null, {
+      .post(`${process.env.REACT_APP_API_URL}/api/users/logout`, null, {
         withCredentials: true,
       })
       .then(() => {
@@ -133,7 +133,7 @@ const Workspace: FC = ({ children }) => {
 
       axios
         .post(
-          'http://localhost:3095/api/workspaces',
+          `${process.env.REACT_APP_API_URL}/api/workspaces`,
           { workspace: newWorkspace, url: newURL },
           { withCredentials: true }, // 로그인 된 상태임을 알기 위한 조건
         )

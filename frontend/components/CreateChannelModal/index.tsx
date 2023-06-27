@@ -31,12 +31,12 @@ const CreateChannelModal: VFC<Props> = ({ show, onCloseModal, setShowCreateChann
     isLoading,
     error,
     mutate,
-  } = useSWR<IUser | false>('http://localhost:3095/api/users', fetcher, {
+  } = useSWR<IUser | false>(`${process.env.REACT_APP_API_URL}/api/users`, fetcher, {
     revalidateOnMount: true,
   });
 
   const { data: channelData, mutate: mutateChannelData } = useSWR<IChannel[]>(
-    userData ? `http://localhost:3095/api/workspaces/${workspace}/channels` : null,
+    userData ? `${process.env.REACT_APP_API_URL}/api/workspaces/${workspace}/channels` : null,
     fetcher,
     {
       revalidateOnMount: true,
@@ -48,7 +48,7 @@ const CreateChannelModal: VFC<Props> = ({ show, onCloseModal, setShowCreateChann
       e.preventDefault();
       axios
         .post(
-          `http://localhost:3095/api/workspaces/${workspace}/channels`,
+          `${process.env.REACT_APP_API_URL}/api/workspaces/${workspace}/channels`,
           { name: newChannel },
           { withCredentials: true },
         )

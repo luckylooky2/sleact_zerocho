@@ -19,11 +19,11 @@ const InviteChannelModal: VFC<Props> = ({ show, onCloseModal, setShowInviteChann
   const { workspace, channel } = useParams<{ workspace: string; channel: string }>();
   const [newMember, onChangeNewMember, setNewMember] = useInput('');
 
-  const { data: userData } = useSWR<IUser>('http://localhost:3095:/api/users', fetcher);
+  const { data: userData } = useSWR<IUser>(`${process.env.REACT_APP_API_URL}:/api/users`, fetcher);
   // 채널의 멤버 목록을 최신화하는 mutate
   // **여기서 data를 가져오지 않아도, 모든 컴포넌트에서 캐시를 공유하기 때문에 다른 어떤 컴포넌트에서 그냥 data를 가져다 쓰면 됨!**
   const { mutate: mutateChannelMembers } = useSWR<IChannel[]>(
-    userData ? `http://localhost:3095/api/workspaces/${workspace}/channels/${channel}/members` : null,
+    userData ? `${process.env.REACT_APP_API_URL}/api/workspaces/${workspace}/channels/${channel}/members` : null,
     fetcher,
   );
 
@@ -32,7 +32,7 @@ const InviteChannelModal: VFC<Props> = ({ show, onCloseModal, setShowInviteChann
     if (!newMember || !newMember.trim()) return;
     axios
       .post(
-        `http://localhost:3095/api/workspaces/${workspace}/channels/${channel}/member`,
+        `${process.env.REACT_APP_API_URL}/api/workspaces/${workspace}/channels/${channel}/member`,
         { email: newMember },
         { withCredentials: true },
       )

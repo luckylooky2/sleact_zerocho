@@ -2,6 +2,13 @@ import path from 'path';
 import ReactRefreshWebpackPlugin from '@pmmmwh/react-refresh-webpack-plugin';
 import webpack, { Configuration as WebpackConfiguration } from 'webpack';
 import { Configuration as WebpackDevServerConfiguration } from 'webpack-dev-server';
+// dotenv는 Webpack 라이브러리의 일종으로, .env 파일을 통해 process.env 환경변수를 로드하는 zero-dependency 모듈
+// https://abangpa1ace.tistory.com/272
+// 1. 설치 : npm i --save dotenv
+// 2. import dotenv from 'dotenv'; dotenv.config();
+import dotenv from 'dotenv';
+
+dotenv.config({ path: `./.env` });
 
 interface Configuration extends WebpackConfiguration {
   devServer?: WebpackDevServerConfiguration;
@@ -70,7 +77,11 @@ const config: Configuration = {
       //   files: "./src/**/*",
       // },
     }),
-    new webpack.EnvironmentPlugin({ NODE_ENV: isDevelopment ? 'development' : 'production' }),
+    // 3. DefinePlugin or EnvironmentPlugin으로 적용
+    new webpack.EnvironmentPlugin({
+      NODE_ENV: isDevelopment ? 'development' : 'production',
+      REACT_APP_API_URL: false,
+    }),
   ],
   output: {
     path: path.join(__dirname, 'dist'),

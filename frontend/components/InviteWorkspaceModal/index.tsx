@@ -17,7 +17,7 @@ interface Props {
 
 const InviteWorkspaceModal: VFC<Props> = ({ show, onCloseModal, setShowInviteWorkspaceModal }) => {
   const { workspace } = useParams<{ workspace: string }>();
-  const { data: userData } = useSWR<IUser>('http://localhost:3095:/api/users', fetcher);
+  const { data: userData } = useSWR<IUser>(`${process.env.REACT_APP_API_URL}:/api/users`, fetcher);
   // 워크스페이스의 멤버 목록을 최신화하는 mutate
   // **여기서 data를 가져오지 않아도, 모든 컴포넌트에서 캐시를 공유하기 때문에 다른 어떤 컴포넌트에서 그냥 data를 가져다 쓰면 됨!**
   // why mutate?
@@ -27,7 +27,7 @@ const InviteWorkspaceModal: VFC<Props> = ({ show, onCloseModal, setShowInviteWor
   // - **이를 통해 화면에 실시간으로 새 멤버가 추가된 채널 목록을 업데이트할 수 있음**
   // - 초대받은 유저는 일단 워크스페이스 또는 채널에 추가되는 방식
   const { mutate: mutateWorkspaceMembers } = useSWR<IChannel[]>(
-    userData ? `http://localhost:3095/api/workspaces/${workspace}/members` : null,
+    userData ? `${process.env.REACT_APP_API_URL}/api/workspaces/${workspace}/members` : null,
     fetcher,
   );
   const [newMember, onChangeNewMember, setNewMember] = useInput('');
@@ -38,7 +38,7 @@ const InviteWorkspaceModal: VFC<Props> = ({ show, onCloseModal, setShowInviteWor
       if (!newMember || !newMember.trim()) return;
       axios
         .post(
-          `http://localhost:3095/api/workspaces/${workspace}/members`,
+          `${process.env.REACT_APP_API_URL}/api/workspaces/${workspace}/members`,
           { email: newMember },
           { withCredentials: true },
         )

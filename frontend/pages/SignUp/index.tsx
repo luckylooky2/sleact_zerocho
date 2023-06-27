@@ -38,7 +38,7 @@ const SignUp = () => {
   const [signUpSuccess, setSignUpSuccess] = useState(false);
 
   // 로그인 이후, 다시 회원가입으로 접근하기 위해 막는 장치
-  const { data, isLoading, error, mutate } = useSWR('http://localhost:3095/api/users', fetcher, {
+  const { data, isLoading, error, mutate } = useSWR(`${process.env.REACT_APP_API_URL}/api/users`, fetcher, {
     revalidateOnMount: true,
   });
 
@@ -95,7 +95,7 @@ const SignUp = () => {
         axios
           // { email : email, nickname : nickname, password : password }가 아니라 { email, nickname, password }?
           // 객체의 속성을 명확하게 식별하고 가독성을 높이기 위해 가능한한 키를 명시적으로 지정하는 것이 좋음
-          .post('http://localhost:3095/api/users', { email, nickname, password }) // url, data
+          .post(`${process.env.REACT_APP_API_URL}/api/users`, { email, nickname, password }) // url, data
           // 2. success
           .then((response) => {
             setSignUpSuccess(true);

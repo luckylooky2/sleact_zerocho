@@ -4,7 +4,7 @@ import axios from 'axios';
 import { Redirect, Link } from 'react-router-dom';
 import useInput from '@hooks/useInput';
 // Global Mutate : 여기 있는 mutate는 key를 이용하여 범용적으로 사용할 수 있음
-// e.g. mutate('http://localhost:3095/api/users', false)
+// e.g. mutate(`${process.env.REACT_APP_API_URL}/api/users`, false)
 import useSWR, { mutate } from 'swr';
 import fetcher from '@utils/fetcher';
 
@@ -100,7 +100,7 @@ const Login = () => {
   // - **이런 류의 라이브러리를 사용하는 가장 큰 이유?**
   // - SWRConfig의 provider 옵션으로 이 동작을 커스터마이징 할 수도 있음
 
-  const { data, isLoading, error, mutate } = useSWR('http://localhost:3095/api/users', fetcher, {
+  const { data, isLoading, error, mutate } = useSWR(`${process.env.REACT_APP_API_URL}/api/users`, fetcher, {
     revalidateOnMount: true,
   });
 
@@ -126,7 +126,7 @@ const Login = () => {
       // - 이 프로젝트에서는 Redux를 사용하지 않음, 대안은? Context API? SWR or React query?
       // - SWR을 사용하여 어떻게 전역적으로 상태를 관리하는가?
       axios
-        .post('http://localhost:3095/api/users/login', { email, password }, { withCredentials: true })
+        .post(`${process.env.REACT_APP_API_URL}/api/users/login`, { email, password }, { withCredentials: true })
         .then((response) => {
           // Bound Mutate
           // mutate()를 호출하지 않으면, data가 최신화되지 않음(data : false)
