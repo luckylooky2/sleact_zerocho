@@ -33,6 +33,8 @@ import DirectMessage from '@pages/DirectMessage';
 import Channel from '@pages/Channel';
 import InviteWorkspaceModal from '@components/InviteWorkspaceModal';
 import InviteChannelModal from '@components/InviteChannelModal';
+import DMList from '@components/DMList';
+import ChannelList from '@components/ChannelList';
 
 // Workspace layout
 // 다른 컴포넌트들을 감싸는 컴포넌트라고 생각하면 될 듯?
@@ -208,11 +210,11 @@ const Workspace: FC = ({ children }) => {
               <div>로딩 중...</div>
             ) : (
               <>
-                <ProfileImg src={gravatar.url(userData.nickname, { s: '28px', d: 'mp' })} alt={userData.email} />
+                <ProfileImg src={gravatar.url(userData.nickname, { s: '28px', d: 'retro' })} alt={userData.email} />
                 {showProfileMenu ? (
                   <Menu style={{ right: 0, top: 38 }} show={showProfileMenu} onCloseModal={onClickProfileMenu}>
                     <ProfileModal>
-                      <img src={gravatar.url(userData?.nickname, { s: '36px', d: 'mp' })} alt={userData.email} />
+                      <img src={gravatar.url(userData?.nickname, { s: '36px', d: 'retro' })} alt={userData.email} />
                       <div>
                         <span id="profile-name">{userData?.nickname}</span>
                         <span id="profile-active">active</span>
@@ -252,19 +254,18 @@ const Workspace: FC = ({ children }) => {
           <AddButton onClick={onClickCreateWorkspace}>+</AddButton>
         </Workspaces>
         <Channels>
-          <WorkspaceName onClick={toggleWorkspaceMenu}>Sleact</WorkspaceName>
+          <WorkspaceName onClick={toggleWorkspaceMenu}>{workspace}</WorkspaceName>
           <MenuScroll>
             <Menu show={showWorkspaceMenu} onCloseModal={toggleWorkspaceMenu} style={{ top: 95, left: 80 }}>
               <WorkspaceModal>
-                <h2>Sleact</h2>
+                <h2>{workspace}</h2>
                 <button onClick={onClickInviteWorkspace}>워크스페이스에 사용자 초대</button>
                 <button onClick={onClickAddChannel}>채널 만들기</button>
                 <button onClick={onClickLogout}>로그아웃</button>
               </WorkspaceModal>
             </Menu>
-            {channelData?.map((v) => (
-              <div>{v.name}</div>
-            ))}
+            <ChannelList />
+            <DMList />
           </MenuScroll>
         </Channels>
         <Chats>
