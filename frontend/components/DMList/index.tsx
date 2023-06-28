@@ -1,10 +1,12 @@
 import { IUser, IUserWithOnline } from '@typings/db';
 import fetcher from '@utils/fetcher';
-import React, { VFC, useCallback, useState } from 'react';
+import React, { VFC, useCallback, useState, useEffect } from 'react';
 import { useParams } from 'react-router';
 import useSWR from 'swr';
 import { CollapseButton } from '@components/DMList/style';
 import { NavLink } from 'react-router-dom';
+import useSocket from '@hooks/useSocket';
+import gravatar from 'gravatar';
 
 // userData : 왜 swr로 가져오지 않고, props로 가져오나?
 // - 어떤 컴포넌트더라도 useSWR을 사용한다고 다시 요청하지 않기 떄문에, useSWR을 사용해도 상관 없음
@@ -35,6 +37,8 @@ const DMList: VFC = () => {
   const [channelCollapse, setChannelCollapse] = useState(false);
   const [countList, setCountList] = useState<{ [key: string]: number }>({});
   const [onlineList, setOnlineList] = useState<number[]>([]);
+  // hooks로 관리되는 것이기 떄문에, 필요한 때에 불러서 사용할 수 있음
+  const [socket] = useSocket(workspace);
 
   const toggleChannelCollapse = useCallback(() => {
     setChannelCollapse((prev) => !prev);
@@ -52,7 +56,22 @@ const DMList: VFC = () => {
     [],
   );
 
-  const onMessage = useCallback(() => {}, []);
+  const onMessage = useCallback(() => {}, [workspace]);
+
+  useEffect(() => {
+    socket?.on('onlineList', (data: number[]) => {
+      setOnlineList(data);
+    });
+    socket?.on('dm', onMessage);
+    console.log('socket on dm', socket?.hasListeners('dm'), socket);
+    return () => {
+      // on 과 off는 반드시 짝을 이루자!
+      // 그렇지 않으면, on 이벤트가 중첩될 수 있기 때문에 예상과 다른 결과가 나올 수 있음
+      socket?.off('dm', onMessage);
+      console.log('socket off dm', socket?.hasListeners('dm'));
+      socket?.off('onlineList');
+    };
+  }, [socket]);
 
   // slack은 className에 따라 image를 바뀌게 조절
   // 마찬가지로 isOnline에 따라 className을 컨트롤
@@ -81,16 +100,24 @@ const DMList: VFC = () => {
             const isOnline = onlineList.includes(member.id);
             return (
               <NavLink key={member.id} activeClassName="selected" to={`/workspace/${workspace}/dm/${member.id}`}>
-                <i
-                  className={`c-icon p-channel_sidebar__presence_icon p-channel_sidebar__presence_icon--dim_enabled c-presence ${
-                    isOnline ? 'c-presence--active c-icon--presence-online' : 'c-icon--presence-offline'
-                  }`}
-                  aria-hidden="true"
-                  data-qa="presence_indicator"
-                  data-qa-presence-self="false"
-                  data-qa-presence-active="false"
-                  data-qa-presence-dnd="false"
-                />
+                <div style={{ position: 'relative', width: '35px', height: '30px' }}>
+                  <img
+                    style={{ position: 'absolute', top: '0', left: '0' }}
+                    src={gravatar.url(member.nickname, { s: '25px', d: 'retro' })}
+                    alt={member.email}
+                  />
+                  <i
+                    style={{ position: 'absolute', bottom: '0', right: '-4' }}
+                    className={`c-icon p-channel_sidebar__presence_icon p-channel_sidebar__presence_icon--dim_enabled c-presence ${
+                      isOnline ? 'c-presence--active c-icon--presence-online' : 'c-icon--presence-offline'
+                    }`}
+                    aria-hidden="true"
+                    data-qa="presence_indicator"
+                    data-qa-presence-self="false"
+                    data-qa-presence-active="false"
+                    data-qa-presence-dnd="false"
+                  />
+                </div>
                 <span>{member.nickname}</span>
                 {member.id === userData?.id && <span> (나)</span>}
                 {/* {(count && count > 0 && <span className="count">{count}</span>) || null} */}

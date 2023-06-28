@@ -1,5 +1,5 @@
 #! /bin/bash
 
-npm install
+npm install --force
 # npm run build
 exec npm run dev

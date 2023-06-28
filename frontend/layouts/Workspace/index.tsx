@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { Link } from 'react-router-dom';
-import React, { VFC, FC, useCallback, useState } from 'react';
+import React, { VFC, FC, useCallback, useState, useEffect } from 'react';
 import {
   Header,
   ProfileImg,
@@ -35,6 +35,7 @@ import InviteWorkspaceModal from '@components/InviteWorkspaceModal';
 import InviteChannelModal from '@components/InviteChannelModal';
 import DMList from '@components/DMList';
 import ChannelList from '@components/ChannelList';
+import useSocket from '@hooks/useSocket';
 
 // Workspace layout
 // 다른 컴포넌트들을 감싸는 컴포넌트라고 생각하면 될 듯?
@@ -85,6 +86,33 @@ const Workspace: FC = ({ children }) => {
   // 최대한 적은 JSX를 리렌더링하는 방향으로!
   const [newWorkspace, onChangeNewWorkspace, setNewWorkspace] = useInput('');
   const [newURL, onChangeNewURL, setNewURL] = useInput('');
+  const [socket, disconnect] = useSocket(workspace);
+
+  useEffect(() => {
+    // socket이 undefined일 수도 있음
+    if (channelData && userData && socket) {
+      socket.emit('login', { id: userData.id, channels: channelData.map((v) => v.id) });
+    }
+
+    // connected, disconnected : 연결 확인
+    // nsp : namespace 이름(socket.io 추가 기능)
+    // receiveBuffer, sendBuffer : 비어있어야 정상적인 연결 상태(socket.io 추가 기능)
+    // - sendBuffer가 차있는 경우, 데이터를 서버로 보내야 하는데 연결이 끊겨서 보내지 못하는 상태
+    // - 연결이 되면 밀렸던 데이터를 보내면서 Buffer를 비움
+    // callbacks : socket.on() 했던 list
+    // io : 연결에 대한 option
+    console.log(socket);
+  }, [socket, userData, channelData]);
+
+  useEffect(() => {
+    return () => {
+      disconnect();
+    };
+  }, [workspace, disconnect]);
+  // useEffect 의존성 배열
+  // workspace가 함수 안에서 쓰이지 않더라도, 넣어줄 수 있음
+  // 캐싱, 최적화의 문제가 아니라 로직의 문제!
+  // - why? workspace가 바뀔 때, socket을 연결 해제해야 하기 때문
 
   const onClickLogout = useCallback(() => {
     axios

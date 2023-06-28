@@ -8,6 +8,7 @@ import fetcher from '@utils/fetcher';
 import ChatBox from '@components/ChatBox';
 import useInput from '@hooks/useInput';
 import axios from 'axios';
+import ChatList from '@components/ChatList';
 import { toast } from 'react-toastify';
 import { IDM } from '@typings/db';
 
@@ -23,7 +24,7 @@ const DirectMessage: VFC = () => {
   );
   const { data: myData } = useSWR(`${process.env.REACT_APP_API_URL}/api/users`, fetcher);
   const { data: chatData, mutate: mutateChatData } = useSWR<IDM[]>(
-    `${process.env.REACT_APP_API_URL}/api/workspaces/${workspace}/dms/${id}/chats?perPage=20&page=1`,
+    `${process.env.REACT_APP_API_URL}/api/workspaces/${workspace}/dms/${id}/chats?perPage=100&page=1`,
     fetcher,
   );
   const [chat, onChangeChat, setChat] = useInput('');
@@ -58,7 +59,7 @@ const DirectMessage: VFC = () => {
         <img src={gravatar.url(userData?.nickname, { s: '36px', d: 'retro' })} alt={userData.email} />
         <span>{userData.nickname}</span>
       </Header>
-      {/* <ChatList /> */}
+      <ChatList chatData={chatData} />
       <ChatBox
         chat={chat}
         onSubmitForm={onSubmitForm}
