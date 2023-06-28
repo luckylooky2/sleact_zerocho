@@ -1,4 +1,4 @@
-import React, { VFC } from 'react';
+import React, { useCallback, VFC } from 'react';
 import Workspace from '@layouts/Workspace';
 import { Container, Header } from '@pages/DirectMessage/style';
 import gravatar from 'gravatar';
@@ -6,6 +6,10 @@ import { useParams } from 'react-router';
 import useSWR from 'swr';
 import fetcher from '@utils/fetcher';
 import ChatBox from '@components/ChatBox';
+import useInput from '@hooks/useInput';
+import axios from 'axios';
+import { toast } from 'react-toastify';
+import { IDM } from '@typings/db';
 
 // http 요청을 보냈는데 JSON이 아니라 html이 오는 경우?
 // - 1. 404 : 없는 리소스에 요청한 경우
@@ -18,6 +22,33 @@ const DirectMessage: VFC = () => {
     fetcher,
   );
   const { data: myData } = useSWR(`${process.env.REACT_APP_API_URL}/api/users`, fetcher);
+  const { data: chatData, mutate: mutateChatData } = useSWR<IDM[]>(
+    `${process.env.REACT_APP_API_URL}/api/workspaces/${workspace}/dms/${id}/chats?perPage=20&page=1`,
+    fetcher,
+  );
+  const [chat, onChangeChat, setChat] = useInput('');
+
+  const onSubmitForm = useCallback(
+    (e) => {
+      e.preventDefault();
+      if (chat?.trim()) {
+        axios
+          .post(
+            `${process.env.REACT_APP_API_URL}/api/workspaces/${workspace}/dms/${id}/chats`,
+            { content: chat },
+            { withCredentials: true },
+          )
+          .then((response) => {
+            setChat('');
+          })
+          .catch((error) => {
+            console.dir(error);
+            toast.error('');
+          });
+      }
+    },
+    [chat],
+  );
 
   if (!userData || !myData) return null;
 
@@ -28,7 +59,12 @@ const DirectMessage: VFC = () => {
         <span>{userData.nickname}</span>
       </Header>
       {/* <ChatList /> */}
-      <ChatBox chat="" />
+      <ChatBox
+        chat={chat}
+        onSubmitForm={onSubmitForm}
+        onChangeChat={onChangeChat}
+        placeholder={`${userData.nickname}에 메시지 보내기`}
+      />
     </Container>
   );
 };
