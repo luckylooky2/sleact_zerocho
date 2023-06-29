@@ -1,7 +1,11 @@
 import { IDM } from '@typings/db';
-import React, { VFC } from 'react';
+import React, { VFC, memo, useMemo } from 'react';
 import { ChatWrapper } from '@components/Chat/style';
 import gravatar from 'gravatar';
+import { Link, useParams } from 'react-router-dom';
+// regexify-string
+// - 정규표현식에 관한 API를 제공해주는 라이브러리
+import regexifyString from 'regexify-string';
 // dayjs
 // - immutable : 복사를 하는 경우, 참조 관계가 유지되지 않음
 // - 가벼움
@@ -15,7 +19,33 @@ interface Props {
 }
 
 const Chat: VFC<Props> = ({ data }) => {
+  const { workspace, id } = useParams<{ workspace: string; id: string }>();
   const user = data.Sender;
+
+  // \d : 숫자
+  // * : 0개 이상
+  // + : 1개 이상
+  // ? : 0개나 1개
+
+  // useMemo : regex가 의외로 성능이 안 좋기 때문에, caching(memoization)을 해주면 좋음
+  const result = useMemo(() => {
+    return regexifyString({
+      input: data.content,
+      pattern: /@\[(.+?)]\((\d+?)\)|\n/g,
+      decorator(match, index) {
+        const arr: string[] | null = match.match(/@\[(.+?)]\((\d+?)\)/)!;
+        if (arr) {
+          return (
+            <Link key={match + index} to={`/workspace/${workspace}/dm/${arr[2]}`}>
+              @{arr[1]}
+            </Link>
+          );
+        }
+        // \n을 줄바꿈 태그로 바꾸는 코드
+        return <br key={index} />;
+      },
+    });
+  }, [data.content]); // input(data.content)이 바뀔 때, result를 다시 계산
 
   return (
     <ChatWrapper>
@@ -27,10 +57,10 @@ const Chat: VFC<Props> = ({ data }) => {
           <b>{user.nickname}</b>
           <span>{dayjs(data.createdAt).format('h:mm A')}</span>
         </div>
-        <p>{data.content}</p>
+        <p>{result}</p>
       </div>
     </ChatWrapper>
   );
 };
 
-export default Chat;
+export default memo(Chat);

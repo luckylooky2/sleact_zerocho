@@ -111,7 +111,7 @@ const Login = () => {
   // - 처음에 data는 undefined이기 때문에, 이 옵션이 true 이어야 함
   // - useSWR() => console.log() => 컴포넌트 마운트 => 리렌더링(옵션) => useSWR() => console.log()
   // cf> mutate()를 호출하기 전, 리렌더링에 민감한 로직이 있는지 확인!
-  console.log('data :', data, '/ isLoading :', isLoading);
+  // console.log('data :', data, '/ isLoading :', isLoading);
 
   const onSubmitLogin = useCallback(
     (e) => {

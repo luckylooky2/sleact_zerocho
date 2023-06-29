@@ -62,8 +62,6 @@ const Workspace: FC = ({ children }) => {
     revalidateOnMount: true,
   });
 
-  console.log(userData);
-
   // swr 조건부 요청
   // e.g. userData ? "" : null
   // - userData가 없으면(로그인하지 않았으면) swr이 요청을 보내지 않음
@@ -101,7 +99,7 @@ const Workspace: FC = ({ children }) => {
     // - 연결이 되면 밀렸던 데이터를 보내면서 Buffer를 비움
     // callbacks : socket.on() 했던 list
     // io : 연결에 대한 option
-    console.log(socket);
+    // console.log(socket);
   }, [socket, userData, channelData]);
 
   useEffect(() => {
