@@ -50,7 +50,7 @@ const Chat: VFC<Props> = ({ data }) => {
   return (
     <ChatWrapper>
       <div className="chat-img">
-        <img src={gravatar.url(user.email, { s: '36px', d: 'retro' })} alt={user.nickname} />
+        <img src={gravatar.url(user.nickname, { s: '36px', d: 'retro' })} alt={user.nickname} />
       </div>
       <div className="chat-text">
         <div className="chat-user">
