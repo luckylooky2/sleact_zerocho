@@ -11,13 +11,16 @@ export const Section = styled.section`
   border-top: 1px solid #eee;
 `;
 
+// position : sticky
+// - 평소에는 일반 요소처럼 있다가, 특정 높이가 되면(화면에서 나가면) fixed 처럼 바뀜
+// - e.g. 슬랙에서 날짜 표시가 위로 올라가면 상단에 붙는 효과
 export const StickyHeader = styled.div`
   display: flex;
   justify-content: center;
   flex: 1;
   width: 100%;
   position: sticky;
-  top: 14px;
+  top: 20px;
 
   & button {
     font-weight: bold;
