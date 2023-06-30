@@ -41,7 +41,7 @@ const Channel = () => {
     <Container>
       <Header>채널</Header>
       <ChatBox
-        textareaRef={textareaRef}
+        ref={textareaRef}
         chat={chat}
         onSubmitForm={onSubmitForm}
         onChangeChat={onChangeChat}

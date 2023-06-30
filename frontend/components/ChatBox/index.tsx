@@ -1,4 +1,4 @@
-import React, { VFC, useCallback, useRef, useEffect, RefObject, forwardRef, useState } from 'react';
+import React, { FC, useCallback, useRef, useEffect, RefObject, forwardRef, useState } from 'react';
 import { Form, SendButton, Toolbox, MentionsTextarea, ChatArea, EachMention } from '@components/ChatBox/style';
 import useSWR from 'swr';
 import fetcher from '@utils/fetcher';
@@ -15,20 +15,18 @@ import { useParams } from 'react-router';
 import { Mention, SuggestionDataItem } from 'react-mentions';
 import { IUser } from '@typings/db';
 import gravatar from 'gravatar';
-import autosize from 'autosize';
 
 interface Props {
   chat: string;
   onSubmitForm: (e: any) => void;
   onChangeChat: (e: any) => void;
   placeholder: string;
-  textareaRef: RefObject<HTMLTextAreaElement>;
 }
 
 // 여기서 DM 매시지 보내기 로직을 작성하면 안 됨!
 // - 채널 컴포넌트에서도 이 ChatBox 컴포넌트를 _재사용할_ 것이기 때문
 // - props를 이용하여 부모 컴포넌트에서 대신 처리하는 방법이 필요!
-const ChatBox: VFC<Props> = forwardRef(({ chat, onSubmitForm, onChangeChat, placeholder, textareaRef }) => {
+const ChatBox = forwardRef<HTMLTextAreaElement, Props>(({ chat, onSubmitForm, onChangeChat, placeholder }, ref) => {
   const { workspace, id } = useParams<{ workspace: string; id: string }>();
   const [isMaxHeight, setIsMaxHeight] = useState(false);
   const { data: memberData } = useSWR<IUser[]>(
@@ -37,10 +35,11 @@ const ChatBox: VFC<Props> = forwardRef(({ chat, onSubmitForm, onChangeChat, plac
   );
   const { data: userData } = useSWR<IUser | false>(`${process.env.REACT_APP_API_URL}/api/users`, fetcher);
 
+  // https://velog.io/@corinthionia/JS-keydown%EC%97%90%EC%84%9C-%ED%95%9C%EA%B8%80-%EC%9E%85%EB%A0%A5-%EC%8B%9C-%EB%A7%88%EC%A7%80%EB%A7%89-%EC%9D%8C%EC%A0%88%EC%9D%B4-%EC%A4%91%EB%B3%B5-%EC%9E%85%EB%A0%A5%EB%90%98%EB%8A%94-%EA%B2%BD%EC%9A%B0-%ED%95%A8%EC%88%98%EA%B0%80-%EB%91%90-%EB%B2%88-%EC%8B%A4%ED%96%89%EB%90%98%EB%8A%94-%EA%B2%BD%EC%9A%B0
   const onKeyDownChat = useCallback(
     (e) => {
       if (e.key === 'Enter') {
-        if (!e.shiftKey) {
+        if (e.nativeEvent.isComposing === false && !e.shiftKey) {
           e.preventDefault();
           onSubmitForm(e);
         }
@@ -81,9 +80,10 @@ const ChatBox: VFC<Props> = forwardRef(({ chat, onSubmitForm, onChangeChat, plac
     [memberData],
   );
 
+  // https://stackoverflow.com/questions/65876809/property-current-does-not-exist-on-type-instance-htmldivelement-null
   useEffect(() => {
-    if (textareaRef.current) {
-      parseInt(textareaRef.current.style.height, 10) >= 500 ? setIsMaxHeight(true) : setIsMaxHeight(false);
+    if (ref && 'current' in ref && ref.current) {
+      parseInt(ref.current.style.height, 10) >= 500 ? setIsMaxHeight(true) : setIsMaxHeight(false);
     }
   }, [chat]);
 
@@ -105,7 +105,7 @@ const ChatBox: VFC<Props> = forwardRef(({ chat, onSubmitForm, onChangeChat, plac
           placeholder={placeholder}
           onChange={onChangeChat}
           onKeyDown={onKeyDownChat}
-          inputRef={textareaRef}
+          inputRef={ref}
           isMaxHeight={isMaxHeight}
           forceSuggestionsAboveCursor
         >
