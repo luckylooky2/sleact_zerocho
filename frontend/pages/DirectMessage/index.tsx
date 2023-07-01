@@ -16,6 +16,7 @@ import { IDM } from '@typings/db';
 import autosize from 'autosize';
 import makeSection from '@utils/makeSection';
 import { Scrollbars } from 'react-custom-scrollbars';
+import useSocket from '@hooks/useSocket';
 
 // http 요청을 보냈는데 JSON이 아니라 html이 오는 경우?
 // - 1. 404 : 없는 리소스에 요청한 경우
@@ -49,6 +50,7 @@ const DirectMessage: VFC = () => {
       `${process.env.REACT_APP_API_URL}/api/workspaces/${workspace}/dms/${id}/chats?perPage=20&page=${index + 1}`,
     fetcher,
   );
+  const [socket] = useSocket(workspace);
   const [chat, onChangeChat, setChat] = useInput('');
 
   const isEmpty = chatData?.[0]?.length === 0;
@@ -155,6 +157,56 @@ const DirectMessage: VFC = () => {
           .sort((a, b) => a.id - b.id) // id 오름차순 정렬
       : [],
   );
+
+  // data : 서버 소켓에서 전달해주는 format
+  const onMessage = useCallback(
+    (data: IDM) => {
+      // 현재 대회하고 있는 상대가 데이터를 보낸 상대 && 나 자신과의 대화가 아닐 때
+      // - 나 자신과의 대화일 경우? 아래 코드가 실행된다면 2번 채팅이 되는 결과
+      if (data.SenderId === Number(id) && myData.id !== Number(id)) {
+        const newArray: IDM[][] = [];
+        mutateChatData(
+          (chatData) => {
+            // 가장 최신 배열에 가장 최신 데이터로 넣기(push_front)
+            // TODO : 만약 뒤에 배열이 더 있다면, 하나씩 뒤로 이동하는 것이 필요(1차원 배열로 만들어서 추가하고, 다시 2차원 배열로 나누는 방법?)
+            chatData?.[0].unshift(data);
+            // const flatted = chatData?.flat();
+            // if (flatted) {
+            //   flatted.unshift(data);
+            //   for (let i = 0; i < flatted.length; i += 20) {
+            //     const chunk = flatted.slice(i, i + 20);
+            //     newArray.push(chunk);
+            //   }
+            // }
+            // return newArray;
+            return chatData;
+          },
+          // revalidate를 켜면 요청을 받아오기 때문에, 실시간으로 데이터가 업데이트 되긴 함
+          // { revalidate: false },
+        ).then(() => {
+          // 스크롤이 제일 아래있을 때를 제외하고는, 남이 보낸 메시지는 스크롤바를 하단으로 내리지 않음
+          if (scrollbarRefCopy) {
+            if (
+              scrollbarRefCopy.getScrollHeight() <
+              scrollbarRefCopy.getClientHeight() + scrollbarRefCopy.getScrollTop() + 150
+            ) {
+              console.log('scrollToBottom!', scrollbarRefCopy.getValues());
+              scrollbarRefCopy.scrollToBottom();
+            }
+          }
+        });
+      }
+    },
+    [chatData],
+  );
+
+  useEffect(() => {
+    socket?.on('dm', onMessage);
+
+    return () => {
+      socket?.off('dm', onMessage);
+    };
+  }, [socket, onMessage]);
 
   if (!userData || !myData) return null;
 
