@@ -147,7 +147,14 @@ const DirectMessage: VFC = () => {
 
   // Array.reverse() : mutable(기존 배열이 바뀌는 불상사) => [...chatData].reverse()
   // Array<Array>.flat() : 2차원 배열을 1차원 배열로 immutable하게 바꿔주는 메서드
-  const chatSections = makeSection(chatData ? chatData.flat().reverse() : []);
+  const chatSections = makeSection(
+    chatData
+      ? chatData
+          .flat()
+          // .reverse()
+          .sort((a, b) => a.id - b.id) // id 오름차순 정렬
+      : [],
+  );
 
   if (!userData || !myData) return null;
 
