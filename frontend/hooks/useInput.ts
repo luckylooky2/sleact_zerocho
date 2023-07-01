@@ -10,12 +10,15 @@ import { ChangeEvent, Dispatch, SetStateAction, useCallback, useState } from 're
 // 2. 가독성이 좋지 않아지는 경우가 많음
 // - type 키워드를 이용해 변수화가 가능!
 
-type useInpuReturnType<T = any> = [T, (e: ChangeEvent<HTMLInputElement>) => void, Dispatch<SetStateAction<T>>];
+type useInpuReturnType<T> = [T, (e: ChangeEvent<HTMLInputElement>) => void, Dispatch<SetStateAction<T>>];
 
-const useInput = <T = any>(initialData: T): useInpuReturnType<T> => {
+// extends를 사용하여 타입을 최소한의 명시가 가능
+const useInput = <T>(initialData: T): useInpuReturnType<T> => {
   const [value, setValue] = useState(initialData);
 
   const handler = useCallback((e) => {
+    // type을 강제로 바꾸는 방법
+    // any를 사용하는 것만큼이나 좋지는 않음
     setValue(e.target.value as unknown as T);
   }, []);
 
