@@ -106,7 +106,7 @@ const ChatBox = forwardRef<HTMLTextAreaElement, Props>(({ chat, onSubmitForm, on
           onChange={onChangeChat}
           onKeyDown={onKeyDownChat}
           inputRef={ref}
-          isMaxHeight={isMaxHeight}
+          style={isMaxHeight ? { overflowY: 'auto' } : {}}
           forceSuggestionsAboveCursor
         >
           <Mention

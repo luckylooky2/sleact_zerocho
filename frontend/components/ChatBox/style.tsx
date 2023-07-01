@@ -22,18 +22,12 @@ export const Form = styled.form`
 
 // styled.textarea`` : <textarea> 태그에 css 적용
 // styled(MentionsInput)`` : 기존에 있는 컴포넌트에다가 css 적용!
-export const MentionsTextarea = styled(MentionsInput)<{ isMaxHeight: boolean }>`
+export const MentionsTextarea = styled(MentionsInput)`
   font-family: Slack-Lato, appleLogo, sans-serif;
   font-size: 15px;
   padding: 8px 9px;
   width: 100%;
   max-height: 500px;
-
-  ${({ isMaxHeight }) =>
-    isMaxHeight &&
-    `
-    overflow : auto;
-`};
 
   & strong {
     background: skyblue;
