@@ -41,7 +41,7 @@ const ChatList = forwardRef<Scrollbars, Props>(({ chatSections, setSize, isEmpty
           // 스크롤 위치 유지
           if (refCopy) {
             // refCopy 안의 values 객체 중에 scroll 관련 값들을 일일이 찾아봐야 함...
-            console.log(refCopy?.getScrollHeight(), values.scrollHeight);
+            // console.log(refCopy?.getScrollHeight(), values.scrollHeight);
             refCopy.scrollTop(refCopy?.getScrollHeight() - values.scrollHeight);
           }
         });
@@ -79,8 +79,8 @@ const ChatList = forwardRef<Scrollbars, Props>(({ chatSections, setSize, isEmpty
                 <StickyHeader>
                   <button>{dayjs(date).format('M월 D일 dddd')}</button>
                 </StickyHeader>
-                {chats?.map((chat) => (
-                  <Chat key={chat.id} data={chat} />
+                {chats?.map((chat, index) => (
+                  <Chat key={chat.id + index} data={chat} />
                 ))}
               </Section>
             );
