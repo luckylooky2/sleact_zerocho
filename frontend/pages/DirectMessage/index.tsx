@@ -1,4 +1,4 @@
-import React, { useCallback, VFC, useRef, useEffect, useState, RefObject } from 'react';
+import React, { useCallback, VFC, useRef, useEffect, useState, RefObject, useMemo } from 'react';
 import Workspace from '@layouts/Workspace';
 import { Container, Header } from '@pages/DirectMessage/style';
 import gravatar from 'gravatar';
@@ -17,6 +17,8 @@ import autosize from 'autosize';
 import makeSection from '@utils/makeSection';
 import { Scrollbars } from 'react-custom-scrollbars';
 import useSocket from '@hooks/useSocket';
+import addSingleChat from '@utils/addSingleChat';
+import combineOldNewChats from '@utils/combineOldNewChats';
 
 // http 요청을 보냈는데 JSON이 아니라 html이 오는 경우?
 // - 1. 404 : 없는 리소스에 요청한 경우
@@ -52,6 +54,7 @@ const DirectMessage: VFC = () => {
   );
   const [socket] = useSocket(workspace);
   const [chat, onChangeChat, setChat] = useInput('');
+  const [newChatData, setNewChatData] = useState<IDM[][]>([]);
 
   const isEmpty = chatData?.[0]?.length === 0;
   // undefined가 될 수 있기 때문에 뒤에 || false 추가
@@ -75,6 +78,7 @@ const DirectMessage: VFC = () => {
         // scrollbarRef = node;
         if (chatData?.length === 1) {
           node.scrollToBottom();
+          // console.log(node.getValues());
         }
       }
     },
@@ -87,9 +91,12 @@ const DirectMessage: VFC = () => {
     }
   }, [chat]);
 
+  useEffect(() => {
+    setNewChatData([]);
+  }, [id, chatData]);
+
   // 여기서 ref가 연결된 이후에 다시 렌더링시키지 못하기 때문에
   // - 직접적인 해결방법은 아니지만, 비슷한 state를 넣는 방법?
-  // -
   // useEffect(() => {
   //   console.log('useEffect : ', chatData, chatData?.length);
   //   if (chatData?.length === 1) {
@@ -107,17 +114,21 @@ const DirectMessage: VFC = () => {
         const savedChat = chat;
         mutateChatData(
           (prevChatData) => {
-            // prevChatData?.[0] : 가장 최신 데이터
-            // unshift() : 중에서도 가장 최신 데이터
-            prevChatData?.[0].unshift({
-              id: (chatData[0][0]?.id || 0) + 1,
-              content: savedChat,
-              SenderId: myData.id,
-              Sender: myData,
-              ReceiverId: userData.id,
-              Receiver: userData,
-              createdAt: new Date(),
-            });
+            setNewChatData((prevNewChatData) =>
+              addSingleChat(
+                prevNewChatData,
+                {
+                  id: (prevNewChatData.length !== 0 ? prevNewChatData[0][0]?.id : chatData[0][0]?.id || 0) + 1,
+                  content: savedChat,
+                  SenderId: myData.id,
+                  Sender: myData,
+                  ReceiverId: userData.id,
+                  Receiver: userData,
+                  createdAt: new Date(),
+                },
+                20,
+              ),
+            );
             return prevChatData;
           },
           // optimistic UI할 때는 shouldRevalidate should be false
@@ -136,7 +147,7 @@ const DirectMessage: VFC = () => {
             { withCredentials: true },
           )
           .then((response) => {
-            mutateChatData();
+            // mutateChatData();
           })
           .catch((error) => {
             console.dir(error);
@@ -149,13 +160,17 @@ const DirectMessage: VFC = () => {
 
   // Array.reverse() : mutable(기존 배열이 바뀌는 불상사) => [...chatData].reverse()
   // Array<Array>.flat() : 2차원 배열을 1차원 배열로 immutable하게 바꿔주는 메서드
-  const chatSections = makeSection(
-    chatData
-      ? chatData
-          .flat()
-          // .reverse()
-          .sort((a, b) => a.id - b.id) // id 오름차순 정렬
-      : [],
+  const chatSections = useMemo(
+    () =>
+      makeSection(
+        chatData
+          ? combineOldNewChats(chatData, newChatData)
+              .flat()
+              // .reverse()
+              .sort((a, b) => a.id - b.id) // id 오름차순 정렬
+          : [],
+      ),
+    [chatData, newChatData],
   );
 
   // data : 서버 소켓에서 전달해주는 format
@@ -164,25 +179,16 @@ const DirectMessage: VFC = () => {
       // 현재 대회하고 있는 상대가 데이터를 보낸 상대 && 나 자신과의 대화가 아닐 때
       // - 나 자신과의 대화일 경우? 아래 코드가 실행된다면 2번 채팅이 되는 결과
       if (data.SenderId === Number(id) && myData.id !== Number(id)) {
-        const newArray: IDM[][] = [];
+        // 지금처롬 받자마자 추가하지 말고, 오면 몇 개의 메시지가 왔는지 표시하고
+        // 해당 버튼을 누르거나 아래로 드래그하면 그때 mutateChatData를 추가하는 방법?
         mutateChatData(
-          (chatData) => {
-            // 가장 최신 배열에 가장 최신 데이터로 넣기(push_front)
-            // TODO : 만약 뒤에 배열이 더 있다면, 하나씩 뒤로 이동하는 것이 필요(1차원 배열로 만들어서 추가하고, 다시 2차원 배열로 나누는 방법?)
-            chatData?.[0].unshift(data);
-            // const flatted = chatData?.flat();
-            // if (flatted) {
-            //   flatted.unshift(data);
-            //   for (let i = 0; i < flatted.length; i += 20) {
-            //     const chunk = flatted.slice(i, i + 20);
-            //     newArray.push(chunk);
-            //   }
-            // }
-            // return newArray;
-            return chatData;
+          (prevChatData) => {
+            console.log(data);
+            setNewChatData((prevNewChatData) => addSingleChat(prevNewChatData, data, 20));
+            return prevChatData;
           },
           // revalidate를 켜면 요청을 받아오기 때문에, 실시간으로 데이터가 업데이트 되긴 함
-          // { revalidate: false },
+          { revalidate: false },
         ).then(() => {
           // 스크롤이 제일 아래있을 때를 제외하고는, 남이 보낸 메시지는 스크롤바를 하단으로 내리지 않음
           if (scrollbarRefCopy) {

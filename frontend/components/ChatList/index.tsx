@@ -35,6 +35,7 @@ const ChatList = forwardRef<Scrollbars, Props>(({ chatSections, setSize, isEmpty
   // - https://github.com/malte-wessel/react-custom-scrollbars/blob/master/docs/v2-documentation.md#customization
   const onScroll = useCallback(
     (values) => {
+      // console.log(values);
       if (values.scrollTop === 0 && !isReachingEnd && !isEmpty) {
         // data re-fetching
         setSize((prev: number) => prev + 1).then(() => {
