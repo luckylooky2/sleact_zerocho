@@ -17,7 +17,6 @@ import autosize from 'autosize';
 import makeSection from '@utils/makeSection';
 import { Scrollbars } from 'react-custom-scrollbars';
 import useSocket from '@hooks/useSocket';
-import addSingleChat from '@utils/addSingleChat';
 import combineOldNewChats from '@utils/combineOldNewChats';
 
 // http 요청을 보냈는데 JSON이 아니라 html이 오는 경우?
@@ -26,6 +25,7 @@ import combineOldNewChats from '@utils/combineOldNewChats';
 
 const DirectMessage: VFC = () => {
   const { workspace, id } = useParams<{ workspace: string; id: string }>();
+  const [newChatData, setNewChatData] = useState<IDM[]>([]);
   const { data: userData } = useSWR(
     `${process.env.REACT_APP_API_URL}/api/workspaces/${workspace}/users/${id}`,
     fetcher,
@@ -51,10 +51,10 @@ const DirectMessage: VFC = () => {
     (index: number) =>
       `${process.env.REACT_APP_API_URL}/api/workspaces/${workspace}/dms/${id}/chats?perPage=20&page=${index + 1}`,
     fetcher,
+    { revalidateOnFocus: false },
   );
   const [socket] = useSocket(workspace);
   const [chat, onChangeChat, setChat] = useInput('');
-  const [newChatData, setNewChatData] = useState<IDM[][]>([]);
 
   const isEmpty = chatData?.[0]?.length === 0;
   // undefined가 될 수 있기 때문에 뒤에 || false 추가
@@ -114,21 +114,18 @@ const DirectMessage: VFC = () => {
         const savedChat = chat;
         mutateChatData(
           (prevChatData) => {
-            setNewChatData((prevNewChatData) =>
-              addSingleChat(
-                prevNewChatData,
-                {
-                  id: (prevNewChatData.length !== 0 ? prevNewChatData[0][0]?.id : chatData[0][0]?.id || 0) + 1,
-                  content: savedChat,
-                  SenderId: myData.id,
-                  Sender: myData,
-                  ReceiverId: userData.id,
-                  Receiver: userData,
-                  createdAt: new Date(),
-                },
-                20,
-              ),
-            );
+            setNewChatData((prevNewChatData) => [
+              {
+                id: (prevNewChatData.length !== 0 ? prevNewChatData[0]?.id : chatData[0][0]?.id || 0) + 1,
+                content: savedChat,
+                SenderId: myData.id,
+                Sender: myData,
+                ReceiverId: userData.id,
+                Receiver: userData,
+                createdAt: new Date(),
+              },
+              ...prevNewChatData,
+            ]);
             return prevChatData;
           },
           // optimistic UI할 때는 shouldRevalidate should be false
@@ -184,7 +181,7 @@ const DirectMessage: VFC = () => {
         mutateChatData(
           (prevChatData) => {
             console.log(data);
-            setNewChatData((prevNewChatData) => addSingleChat(prevNewChatData, data, 20));
+            setNewChatData((prevNewChatData) => [data, ...prevNewChatData]);
             return prevChatData;
           },
           // revalidate를 켜면 요청을 받아오기 때문에, 실시간으로 데이터가 업데이트 되긴 함
