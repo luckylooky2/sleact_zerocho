@@ -4,7 +4,7 @@ import { ChatZone, Section, StickyHeader } from '@components/ChatList/style';
 // 진짜 화면의 스크롤은 없어지고, 가상 커스텀 스크롤을 만들어주는 라이브러리
 // scroll bar : div 역할 => 가로로 배치되는 것을 처리
 import { Scrollbars } from 'react-custom-scrollbars';
-import { IDM } from '@typings/db';
+import { IDM, IChat } from '@typings/db';
 import Chat from '@components/Chat';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ko';
@@ -15,8 +15,8 @@ dayjs.locale('ko');
 // optional chaning : undefined와 null을 걸러줌
 // chatData && ~의 느낌
 interface Props {
-  chatSections?: { [key: string]: IDM[] };
-  setSize: (size: number | ((_size: number) => number)) => Promise<IDM[][] | undefined>;
+  chatSections?: { [key: string]: IDM[] | IChat[] };
+  setSize: (size: number | ((_size: number) => number)) => Promise<IDM[][] | IChat[][] | undefined>;
   isEmpty: boolean;
   refCopy: Scrollbars | undefined;
   isReachingEnd: boolean;

@@ -1,4 +1,4 @@
-import { IDM } from '@typings/db';
+import { IChat, IDM } from '@typings/db';
 import React, { VFC, memo, useMemo } from 'react';
 import { ChatWrapper } from '@components/Chat/style';
 import gravatar from 'gravatar';
@@ -15,12 +15,16 @@ import regexifyString from 'regexify-string';
 import dayjs from 'dayjs';
 
 interface Props {
-  data: IDM;
+  data: IDM | IChat;
 }
 
 const Chat: VFC<Props> = ({ data }) => {
   const { workspace, id } = useParams<{ workspace: string; id: string }>();
-  const user = data.Sender;
+  // 타입 가드
+  // 1. in (js 문법) : 객체 안에 property가 존재하는지?
+  // - Sender : dm에만 들어있는 속성
+  // 2. if (typeof a === 'string') a.slice()... : if문으로 감싸주면, type을 알아서 추론
+  const user = 'Sender' in data ? data.Sender : data.User;
 
   // \d : 숫자
   // * : 0개 이상
