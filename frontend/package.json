@@ -5,8 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "webpack serve --env development",
-    "build": "cross-env NODE_ENV=production webpack"
+    "dev": "cross-env TS_NODE_PROJECT=\"tsconfig-for-webpack-config.json\" webpack serve --env development",
+    "build": "cross-env NODE_ENV=production TS_NODE_PROJECT=\"tsconfig-for-webpack-config.json\" webpack"
   },
   "author": "chanhyle",
   "license": "MIT",
@@ -19,6 +19,7 @@
     "@types/socket.io-client": "3.0.0",
     "@types/react-custom-scrollbars": "4.0.10",
     "@types/react-mentions": "4.1.8",
+    "@types/webpack-bundle-analyzer": "4.6.0",
     "@loadable/component": "5.15.3",
     "@emotion/react": "11.11.1",
     "@emotion/styled": "11.11.0",
@@ -40,7 +41,8 @@
     "regexify-string": "1.0.19",
     "socket.io-client": "4.7.0",
     "typescript": "^4.4.2",
-    "swr": "2.1.5"
+    "swr": "2.1.5",
+    "webpack-bundle-analyzer": "4.9.0"
   },
   "devDependencies": {
     "@babel/core": "^7.13.8",
