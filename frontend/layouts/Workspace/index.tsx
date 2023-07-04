@@ -236,7 +236,24 @@ const Workspace: FC = ({ children }) => {
               <div>로딩 중...</div>
             ) : (
               <>
-                <ProfileImg src={gravatar.url(userData.nickname, { s: '28px', d: 'retro' })} alt={userData.email} />
+                <div style={{ position: 'relative', width: '35px', height: '30px' }}>
+                  <img
+                    className="c-base_icon c-base_icon--image"
+                    style={{ position: 'absolute', top: '0', left: '0' }}
+                    src={gravatar.url(userData.nickname, { s: '25px', d: 'retro' })}
+                    alt={userData.email}
+                  />
+
+                  <i
+                    className="c-icon p-channel_sidebar__presence_icon p-channel_sidebar__presence_icon--dim_enabled c-presence c-presence--active c-icon--presence-online"
+                    aria-hidden="true"
+                    data-qa="presence_indicator"
+                    data-qa-presence-self="false"
+                    data-qa-presence-active="false"
+                    data-qa-presence-dnd="false"
+                    style={{ top: '10px', left: '10px' }}
+                  />
+                </div>
                 {showProfileMenu ? (
                   <Menu style={{ right: 0, top: 38 }} show={showProfileMenu} onCloseModal={onClickProfileMenu}>
                     <ProfileModal>

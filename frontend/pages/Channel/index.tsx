@@ -101,6 +101,7 @@ const Channel = () => {
           },
           { revalidate: false },
         ).then(() => {
+          localStorage.setItem(`${workspace}-${channel}`, new Date().getTime().toString());
           setChat('');
           if (textareaRef.current) {
             textareaRef.current.style.height = '40px';
@@ -151,18 +152,18 @@ const Channel = () => {
       if (data.Channel.name === channel && (data.content.startsWith('uploads/') || myData?.id !== data.UserId)) {
         mutateChatData(
           (prevChatData) => {
-            console.log(data);
             setNewChatData((prevNewChatData) => [data, ...prevNewChatData]);
             return prevChatData;
           },
           { revalidate: false },
         ).then(() => {
+          localStorage.setItem(`${workspace}-${channel}`, new Date().getTime().toString());
           if (scrollbarRefCopy) {
             if (
               scrollbarRefCopy.getScrollHeight() <
               scrollbarRefCopy.getClientHeight() + scrollbarRefCopy.getScrollTop() + 150
             ) {
-              console.log('scrollToBottom!', scrollbarRefCopy.getValues());
+              // console.log('scrollToBottom!', scrollbarRefCopy.getValues());
               scrollbarRefCopy.scrollToBottom();
             }
           }
@@ -172,10 +173,21 @@ const Channel = () => {
     [channel, myData],
   );
 
+  useEffect(() => {
+    socket?.on('message', onMessage);
+
+    return () => {
+      socket?.off('message', onMessage);
+    };
+  }, [socket, onMessage]);
+
+  useEffect(() => {
+    localStorage.setItem(`${workspace}-${channel}`, new Date().getTime().toString());
+  }, [workspace, channel]);
+
   const onDrop = useCallback(
     (e) => {
       e.preventDefault();
-      console.log(e);
       // 서버로 _파일_을 보낼 떄는, JSON이 아니라 FormData를 많이 사용
       const formData = new FormData();
       // 브라우저마다 dataTransfer.items, files에 있는지 다름
@@ -185,7 +197,7 @@ const Channel = () => {
           // If dropped items aren't files, reject them
           if (e.dataTransfer.items[i].kind === 'file') {
             const file = e.dataTransfer.items[i].getAsFile();
-            console.log('... file[' + i + '].name = ' + file.name);
+            // console.log('... file[' + i + '].name = ' + file.name);
             // 하나의 formData에 여러 image file을 저장
             formData.append('image', file);
           } else return;
@@ -193,13 +205,14 @@ const Channel = () => {
       } else {
         // Use DataTransfer interface to access the file(s)
         for (let i = 0; i < e.dataTransfer.files.length; i++) {
-          console.log('... file[' + i + '].name = ' + e.dataTransfer.files[i].name);
+          // console.log('... file[' + i + '].name = ' + e.dataTransfer.files[i].name);
           formData.append('image', e.dataTransfer.files[i]);
         }
       }
       axios
         .post(`${process.env.REACT_APP_API_URL}/api/workspaces/${workspace}/channels/${channel}/images`, formData)
         .then(() => {
+          localStorage.setItem(`${workspace}-${channel}`, new Date().getTime().toString());
           setDragOver(false);
           mutateChatData();
         });
@@ -221,14 +234,6 @@ const Channel = () => {
     e.preventDefault();
     setDragOver(false);
   }, []);
-
-  useEffect(() => {
-    socket?.on('message', onMessage);
-
-    return () => {
-      socket?.off('message', onMessage);
-    };
-  }, [socket, onMessage]);
 
   if (!myData) return null;
 

@@ -133,6 +133,8 @@ const DirectMessage: VFC = () => {
           // optimistic UI할 때는 shouldRevalidate should be false
           { revalidate: false },
         ).then(() => {
+          // 채팅 메시지를 보내도 읽은 시간 초기화
+          localStorage.setItem(`${workspace}-${id}`, new Date().getTime().toString());
           setChat('');
           if (textareaRef.current) {
             textareaRef.current.style.height = '40px';
@@ -182,20 +184,22 @@ const DirectMessage: VFC = () => {
         // 해당 버튼을 누르거나 아래로 드래그하면 그때 mutateChatData를 추가하는 방법?
         mutateChatData(
           (prevChatData) => {
-            console.log(data);
+            // console.log(data);
             setNewChatData((prevNewChatData) => [data, ...prevNewChatData]);
             return prevChatData;
           },
           // revalidate를 켜면 요청을 받아오기 때문에, 실시간으로 데이터가 업데이트 되긴 함
           { revalidate: false },
         ).then(() => {
+          // 받은 메시지도 읽은 시간 초기화
+          localStorage.setItem(`${workspace}-${id}`, new Date().getTime().toString());
           // 스크롤이 제일 아래있을 때를 제외하고는, 남이 보낸 메시지는 스크롤바를 하단으로 내리지 않음
           if (scrollbarRefCopy) {
             if (
               scrollbarRefCopy.getScrollHeight() <
               scrollbarRefCopy.getClientHeight() + scrollbarRefCopy.getScrollTop() + 150
             ) {
-              console.log('scrollToBottom!', scrollbarRefCopy.getValues());
+              // console.log('scrollToBottom!', scrollbarRefCopy.getValues());
               scrollbarRefCopy.scrollToBottom();
             }
           }
@@ -213,10 +217,15 @@ const DirectMessage: VFC = () => {
     };
   }, [socket, onMessage]);
 
+  // 들어왔을 때 읽은 시간 초기화
+  useEffect(() => {
+    localStorage.setItem(`${workspace}-${id}`, new Date().getTime().toString());
+  }, [workspace, id]);
+
   const onDrop = useCallback(
     (e) => {
       e.preventDefault();
-      console.log(e);
+      // console.log(e);
       // 서버로 _파일_을 보낼 떄는, JSON이 아니라 FormData를 많이 사용
       const formData = new FormData();
       // 브라우저마다 dataTransfer.items, files에 있는지 다름
@@ -226,7 +235,7 @@ const DirectMessage: VFC = () => {
           // If dropped items aren't files, reject them
           if (e.dataTransfer.items[i].kind === 'file') {
             const file = e.dataTransfer.items[i].getAsFile();
-            console.log('... file[' + i + '].name = ' + file.name);
+            // console.log('... file[' + i + '].name = ' + file.name);
             // 하나의 formData에 여러 image file을 저장
             formData.append('image', file);
           } else return;
@@ -234,7 +243,7 @@ const DirectMessage: VFC = () => {
       } else {
         // Use DataTransfer interface to access the file(s)
         for (let i = 0; i < e.dataTransfer.files.length; i++) {
-          console.log('... file[' + i + '].name = ' + e.dataTransfer.files[i].name);
+          // console.log('... file[' + i + '].name = ' + e.dataTransfer.files[i].name);
           formData.append('image', e.dataTransfer.files[i]);
         }
       }

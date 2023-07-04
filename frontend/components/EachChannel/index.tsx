@@ -1,32 +1,43 @@
-// import React, { VFC } from 'react';
-// import { IUser } from '@typings/db';
-// import { NavLink, useParams } from 'react-router-dom';
+import { IChannel, IUser } from '@typings/db';
+import fetcher from '@utils/fetcher';
+import React, { useEffect, VFC } from 'react';
+import { useParams } from 'react-router';
+import { NavLink, useLocation } from 'react-router-dom';
+import useSWR from 'swr';
 
-// interface Props {
-//   member: IUser;
-//   isOnline: boolean;
-// }
+interface Props {
+  channel: IChannel;
+}
+const EachChannel: VFC<Props> = ({ channel }) => {
+  const { workspace } = useParams<{ workspace?: string }>();
+  const location = useLocation();
+  const { data: userData } = useSWR<IUser>(`${process.env.REACT_APP_API_URL}/api/users`, fetcher, {
+    revalidateOnMount: true,
+  });
+  const date = localStorage.getItem(`${workspace}-${channel.name}`) || 0;
+  const { data: count, mutate } = useSWR<number>(
+    userData
+      ? `${process.env.REACT_APP_API_URL}/api/workspaces/${workspace}/channels/${channel.name}/unreads?after=${date}`
+      : null,
+    fetcher,
+  );
 
-// const EachChannel: VFC<Props> = ({ member, isOnline }) => {
-//   const { workspace } = useParams<{ workspace: string }>();
+  useEffect(() => {
+    if (location.pathname === `/workspace/${workspace}/channel/${channel.name}`) {
+      mutate(0);
+    }
+  }, [mutate, location.pathname, workspace, channel]);
 
-//   return (
-//     <NavLink key={member.id} activeClassName="selected" to={`/workspace/${workspace}/dm/${member.id}`}>
-//       <i
-//         className={`c-icon p-channel_sidebar__presence_icon p-channel_sidebar__presence_icon--dim_enabled c-presence ${
-//           isOnline ? 'c-presence--active c-icon--presence-online' : 'c-icon--presence-offline'
-//         }`}
-//         aria-hidden="true"
-//         data-qa="presence_indicator"
-//         data-qa-presence-self="false"
-//         data-qa-presence-active="false"
-//         data-qa-presence-dnd="false"
-//       />
-//       <span className={count && count > 0 ? 'bold' : undefined}>{member.nickname}</span>
-//       {member.id === userData?.id && <span> (나)</span>}
-//       {(count && count > 0 && <span className="count">{count}</span>) || null}
-//     </NavLink>
-//   );
-// };
+  return (
+    <NavLink
+      key={channel.name}
+      activeStyle={{ fontWeight: 'bold', color: 'white' }}
+      to={`/workspace/${workspace}/channel/${channel.name}`}
+    >
+      <span className={count !== undefined && count > 0 ? 'bold' : undefined}># {channel.name}</span>
+      {count !== undefined && count > 0 && <span className="count">{count}</span>}
+    </NavLink>
+  );
+};
 
-// export default EachChannel;
+export default EachChannel;

@@ -5,6 +5,7 @@ import useSWR from 'swr';
 import { IUser, IChannel } from '@typings/db';
 import { CollapseButton } from '@components/DMList/style';
 import fetcher from '@utils/fetcher';
+import EachChannel from '@components/EachChannel';
 
 const ChannelList: VFC = ({}) => {
   const { workspace } = useParams<{ workspace: string }>();
@@ -37,16 +38,7 @@ const ChannelList: VFC = ({}) => {
       <div>
         {!channelCollapse &&
           channelData?.map((channel) => {
-            return (
-              <NavLink
-                key={channel.name}
-                activeClassName="selected"
-                to={`/workspace/${workspace}/channel/${channel.name}`}
-              >
-                <span># {channel.name}</span>
-                {/* {count !== undefined && count > 0 && <span className="count">{count}</span>} */}
-              </NavLink>
-            );
+            return <EachChannel key={channel.id} channel={channel} />;
           })}
       </div>
     </>

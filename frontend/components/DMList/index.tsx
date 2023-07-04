@@ -7,6 +7,7 @@ import { CollapseButton } from '@components/DMList/style';
 import { NavLink } from 'react-router-dom';
 import useSocket from '@hooks/useSocket';
 import gravatar from 'gravatar';
+import EachDM from '@components/EachDM';
 
 // userData : 왜 swr로 가져오지 않고, props로 가져오나?
 // - 어떤 컴포넌트더라도 useSWR을 사용한다고 다시 요청하지 않기 떄문에, useSWR을 사용해도 상관 없음
@@ -82,6 +83,13 @@ const DMList: VFC = () => {
   // - NavLink : Link 태그 + **activeClassName"을 사용할 수 있음
   // - 지금 라우팅 === href의 주소라면, activeClassName CSS가 활성화
 
+  // 안 읽은 채팅 표시
+  // - 어떤 시점까지 읽었는지, 그 시점 이후 몇 개가 쌓였는지를 알아야 함
+  // - 1. 이떤 시점까지 읽었는지를 방에 들어갈 때마다 저장(업데이트) 해야 함 => DB? localStorage? 선택
+  // - 2. 해당 시점을 기준으로 몇 개가 쌓였는지 API 요청을 통해 받아올 수 있음
+  // - EachChannel, EachDM 컴포넌트로 분리
+  // - => unreads API 호출 => count를 보여줌
+
   return (
     <>
       <h2>
@@ -98,31 +106,7 @@ const DMList: VFC = () => {
         {!channelCollapse &&
           memberData?.map((member) => {
             const isOnline = onlineList.includes(member.id);
-            return (
-              <NavLink key={member.id} activeClassName="selected" to={`/workspace/${workspace}/dm/${member.id}`}>
-                <div style={{ position: 'relative', width: '35px', height: '30px' }}>
-                  <img
-                    style={{ position: 'absolute', top: '0', left: '0' }}
-                    src={gravatar.url(member.nickname, { s: '25px', d: 'retro' })}
-                    alt={member.email}
-                  />
-                  <i
-                    style={{ position: 'absolute', bottom: '0', right: '-4' }}
-                    className={`c-icon p-channel_sidebar__presence_icon p-channel_sidebar__presence_icon--dim_enabled c-presence ${
-                      isOnline ? 'c-presence--active c-icon--presence-online' : 'c-icon--presence-offline'
-                    }`}
-                    aria-hidden="true"
-                    data-qa="presence_indicator"
-                    data-qa-presence-self="false"
-                    data-qa-presence-active="false"
-                    data-qa-presence-dnd="false"
-                  />
-                </div>
-                <span>{member.nickname}</span>
-                {member.id === userData?.id && <span> (나)</span>}
-                {/* {(count && count > 0 && <span className="count">{count}</span>) || null} */}
-              </NavLink>
-            );
+            return <EachDM key={'member' + member.id} member={member} isOnline={isOnline} />;
           })}
       </div>
     </>
