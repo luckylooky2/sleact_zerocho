@@ -4,6 +4,8 @@ import React from 'react';
 import { render } from 'react-dom';
 import { BrowserRouter } from 'react-router-dom';
 import axios from 'axios';
+// SWRDevtools : 모든 swr 요청에 대해 관련 정보를 보여줌
+import SWRDevtools from '@jjordy/swr-devtools';
 
 import App from '@layouts/App';
 
@@ -15,7 +17,9 @@ axios.defaults.baseURL =
 
 render(
   <BrowserRouter>
-    <App />
+    <SWRDevtools>
+      <App />
+    </SWRDevtools>
   </BrowserRouter>,
   document.querySelector('#app'),
 );

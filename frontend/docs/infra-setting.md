@@ -57,6 +57,7 @@
   - 의존하고 있는 패키지의 정보들을 정확하게 알 수 있는 파일
 - ERESOLVE 같은 에러가 발생한다면?
   - `npm install --force`로 실행
+  - cf> 버전 차이로 인한 문제일 때만!
 
 ## 4. tsconfig.json
 
