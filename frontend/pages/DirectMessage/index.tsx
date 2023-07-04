@@ -18,6 +18,7 @@ import makeSection from '@utils/makeSection';
 import { Scrollbars } from 'react-custom-scrollbars';
 import useSocket from '@hooks/useSocket';
 import combineOldNewChats from '@utils/combineOldNewChats';
+import { DragOver } from '@pages/Channel/style';
 
 // http 요청을 보냈는데 JSON이 아니라 html이 오는 경우?
 // - 1. 404 : 없는 리소스에 요청한 경우
@@ -55,6 +56,7 @@ const DirectMessage: VFC = () => {
   );
   const [socket] = useSocket(workspace);
   const [chat, onChangeChat, setChat] = useInput('');
+  const [dragOver, setDragOver] = useState(false);
 
   const isEmpty = chatData?.[0]?.length === 0;
   // undefined가 될 수 있기 때문에 뒤에 || false 추가
@@ -211,10 +213,62 @@ const DirectMessage: VFC = () => {
     };
   }, [socket, onMessage]);
 
+  const onDrop = useCallback(
+    (e) => {
+      e.preventDefault();
+      console.log(e);
+      // 서버로 _파일_을 보낼 떄는, JSON이 아니라 FormData를 많이 사용
+      const formData = new FormData();
+      // 브라우저마다 dataTransfer.items, files에 있는지 다름
+      if (e.dataTransfer.items) {
+        // Use DataTransferItemList interface to access the file(s)
+        for (let i = 0; i < e.dataTransfer.items.length; i++) {
+          // If dropped items aren't files, reject them
+          if (e.dataTransfer.items[i].kind === 'file') {
+            const file = e.dataTransfer.items[i].getAsFile();
+            console.log('... file[' + i + '].name = ' + file.name);
+            // 하나의 formData에 여러 image file을 저장
+            formData.append('image', file);
+          } else return;
+        }
+      } else {
+        // Use DataTransfer interface to access the file(s)
+        for (let i = 0; i < e.dataTransfer.files.length; i++) {
+          console.log('... file[' + i + '].name = ' + e.dataTransfer.files[i].name);
+          formData.append('image', e.dataTransfer.files[i]);
+        }
+      }
+      axios.post(`${process.env.REACT_APP_API_URL}/api/workspaces/${workspace}/dms/${id}/images`, formData).then(() => {
+        setDragOver(false);
+        mutateChatData();
+      });
+    },
+    [workspace, id],
+  );
+
+  const onDragOver = useCallback((e) => {
+    e.preventDefault();
+    if (e.dataTransfer.items) {
+      for (let i = 0; i < e.dataTransfer.items.length; i++) {
+        if (e.dataTransfer.items[i].kind !== 'file') return;
+      }
+    }
+    setDragOver(true);
+  }, []);
+
+  const onDragLeave = useCallback((e) => {
+    e.preventDefault();
+    setDragOver(false);
+  }, []);
+
   if (!userData || !myData) return null;
 
+  // onDrop 이벤트(마우스 버튼에서 손을 떼는 순간) : 이미지를 서버에 업로드
+  // onDragOver 이벤트(드래그 하는 시간 동안) : 업로드 화면으로 렌더링
+  // drop zone : 두 이벤트가 발생하는 공간
+  // cf> input type file()도 적용해보기! => <input type="files" multiple onChange={onChangeFile} />
   return (
-    <Container>
+    <Container onDrop={onDrop} onDragOver={onDragOver}>
       <Header>
         <img src={gravatar.url(userData?.nickname, { s: '36px', d: 'retro' })} alt={userData.email} />
         <span>{userData.nickname}</span>
@@ -234,6 +288,7 @@ const DirectMessage: VFC = () => {
         onChangeChat={onChangeChat}
         placeholder={`${userData.nickname}에 메시지 보내기`}
       />
+      {dragOver && <DragOver onDragLeave={onDragLeave}>드래그 앤 드롭하여 업로드!</DragOver>}
     </Container>
   );
 };

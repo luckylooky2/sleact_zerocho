@@ -32,24 +32,31 @@ const Chat: VFC<Props> = ({ data }) => {
   // ? : 0개나 1개
 
   // useMemo : regex가 의외로 성능이 안 좋기 때문에, caching(memoization)을 해주면 좋음
-  const result = useMemo(() => {
-    return regexifyString({
-      input: data.content,
-      pattern: /@\[(.+?)]\((\d+?)\)|\n/g,
-      decorator(match, index) {
-        const arr: string[] | null = match.match(/@\[(.+?)]\((\d+?)\)/)!;
-        if (arr) {
-          return (
-            <Link key={match + index} to={`/workspace/${workspace}/dm/${arr[2]}`}>
-              @{arr[1]}
-            </Link>
-          );
-        }
-        // \n을 줄바꿈 태그로 바꾸는 코드
-        return <br key={index} />;
-      },
-    });
-  }, [data.content]); // input(data.content)이 바뀔 때, result를 다시 계산
+  const result = useMemo(
+    () =>
+      // uploads/ 로 시작하는 경우, <img /> 적용
+      data.content.startsWith('uploads/') ? (
+        <img src={`${process.env.REACT_APP_API_URL}/${data.content}`} style={{ maxHeight: 200 }} />
+      ) : (
+        regexifyString({
+          input: data.content,
+          pattern: /@\[(.+?)]\((\d+?)\)|\n/g,
+          decorator(match, index) {
+            const arr: string[] | null = match.match(/@\[(.+?)]\((\d+?)\)/)!;
+            if (arr) {
+              return (
+                <Link key={match + index} to={`/workspace/${workspace}/dm/${arr[2]}`}>
+                  @{arr[1]}
+                </Link>
+              );
+            }
+            // \n을 줄바꿈 태그로 바꾸는 코드
+            return <br key={index} />;
+          },
+        })
+      ),
+    [data.content],
+  ); // input(data.content)이 바뀔 때, result를 다시 계산
 
   return (
     <ChatWrapper>

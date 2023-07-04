@@ -17,6 +17,7 @@ import { Scrollbars } from 'react-custom-scrollbars';
 import useSocket from '@hooks/useSocket';
 import combineOldNewChats from '@utils/combineOldNewChats';
 import InviteChannelModal from '@components/InviteChannelModal';
+import { DragOver } from '@pages/Channel/style';
 
 const Channel = () => {
   const { workspace, channel } = useParams<{ workspace: string; channel: string }>();
@@ -48,6 +49,7 @@ const Channel = () => {
   const [socket] = useSocket(workspace);
   const [chat, onChangeChat, setChat] = useInput('');
   const [showInviteChannelModal, setShowInviteChannelModal] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
 
   const isEmpty = chatData?.[0]?.length === 0;
   const isReachingEnd = isEmpty || (chatData && chatData[chatData.length - 1]?.length < 20) || false;
@@ -72,9 +74,9 @@ const Channel = () => {
     }
   }, [chat]);
 
-  // useEffect(() => {
-  //   setNewChatData([]);
-  // }, [id, chatData]);
+  useEffect(() => {
+    setNewChatData([]);
+  }, [channel, chatData]);
 
   const onSubmitForm = useCallback(
     (e) => {
@@ -145,7 +147,8 @@ const Channel = () => {
 
   const onMessage = useCallback(
     (data: IChat) => {
-      if (data.Channel.name === channel && myData?.id !== data.UserId) {
+      // image chat은 optimistic UI가 적용되어 있지 않기 때문에
+      if (data.Channel.name === channel && (data.content.startsWith('uploads/') || myData?.id !== data.UserId)) {
         mutateChatData(
           (prevChatData) => {
             console.log(data);
@@ -169,6 +172,56 @@ const Channel = () => {
     [channel, myData],
   );
 
+  const onDrop = useCallback(
+    (e) => {
+      e.preventDefault();
+      console.log(e);
+      // 서버로 _파일_을 보낼 떄는, JSON이 아니라 FormData를 많이 사용
+      const formData = new FormData();
+      // 브라우저마다 dataTransfer.items, files에 있는지 다름
+      if (e.dataTransfer.items) {
+        // Use DataTransferItemList interface to access the file(s)
+        for (let i = 0; i < e.dataTransfer.items.length; i++) {
+          // If dropped items aren't files, reject them
+          if (e.dataTransfer.items[i].kind === 'file') {
+            const file = e.dataTransfer.items[i].getAsFile();
+            console.log('... file[' + i + '].name = ' + file.name);
+            // 하나의 formData에 여러 image file을 저장
+            formData.append('image', file);
+          } else return;
+        }
+      } else {
+        // Use DataTransfer interface to access the file(s)
+        for (let i = 0; i < e.dataTransfer.files.length; i++) {
+          console.log('... file[' + i + '].name = ' + e.dataTransfer.files[i].name);
+          formData.append('image', e.dataTransfer.files[i]);
+        }
+      }
+      axios
+        .post(`${process.env.REACT_APP_API_URL}/api/workspaces/${workspace}/channels/${channel}/images`, formData)
+        .then(() => {
+          setDragOver(false);
+          mutateChatData();
+        });
+    },
+    [workspace, channel],
+  );
+
+  const onDragOver = useCallback((e) => {
+    e.preventDefault();
+    if (e.dataTransfer.items) {
+      for (let i = 0; i < e.dataTransfer.items.length; i++) {
+        if (e.dataTransfer.items[i].kind !== 'file') return;
+      }
+    }
+    setDragOver(true);
+  }, []);
+
+  const onDragLeave = useCallback((e) => {
+    e.preventDefault();
+    setDragOver(false);
+  }, []);
+
   useEffect(() => {
     socket?.on('message', onMessage);
 
@@ -180,7 +233,7 @@ const Channel = () => {
   if (!myData) return null;
 
   return (
-    <Container>
+    <Container onDrop={onDrop} onDragOver={onDragOver}>
       <Header>
         <span>#{channel}</span>
         <div className="header-right">
@@ -216,6 +269,7 @@ const Channel = () => {
         onCloseModal={onCloseModal}
         setShowInviteChannelModal={setShowInviteChannelModal}
       />
+      {dragOver && <DragOver onDragLeave={onDragLeave}>드래그 앤 드롭하여 업로드!</DragOver>}
     </Container>
   );
 };
