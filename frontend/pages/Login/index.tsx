@@ -103,6 +103,7 @@ const Login = () => {
   // - 페이지를 새로고침 하면, SWR 캐시가 초기화됨 => 요청을 보내서 data fetching하는 과정이 수반됨
   // - SWR의 인스턴스도 다시 생성. 따라서 이전에 캐시된 데이터는 존재하지 않으며, SWR은 새로운 데이터를 요청하여 가져옴
   // - 즉, data에 처음에는 값이 undefined
+  // - { dedupingInterval: 2000 } 옵션을 통해, 같은 캐시에 있는 한 특정 시간 동안 새로 요청을 보내지 않음
   // - swr-sync-storage를 사용하면 swr 캐시를 localStorage 등에 저장해 이를 해결할 수 있음
 
   const { data, isLoading, error, mutate } = useSWR(`${process.env.REACT_APP_API_URL}/api/users`, fetcher, {
