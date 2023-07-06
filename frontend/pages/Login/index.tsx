@@ -99,6 +99,11 @@ const Login = () => {
   // - 서버 데이터를 캐싱하기 때문, 컴포넌트 내에서 캐싱하는 것이 아님
   // - **이런 류의 라이브러리를 사용하는 가장 큰 이유?**
   // - SWRConfig의 provider 옵션으로 이 동작을 커스터마이징 할 수도 있음
+  // (정정)
+  // - 페이지를 새로고침 하면, SWR 캐시가 초기화됨 => 요청을 보내서 data fetching하는 과정이 수반됨
+  // - SWR의 인스턴스도 다시 생성. 따라서 이전에 캐시된 데이터는 존재하지 않으며, SWR은 새로운 데이터를 요청하여 가져옴
+  // - 즉, data에 처음에는 값이 undefined
+  // - swr-sync-storage를 사용하면 swr 캐시를 localStorage 등에 저장해 이를 해결할 수 있음
 
   const { data, isLoading, error, mutate } = useSWR(`${process.env.REACT_APP_API_URL}/api/users`, fetcher, {
     revalidateOnMount: true,
