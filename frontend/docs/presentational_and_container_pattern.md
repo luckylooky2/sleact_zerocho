@@ -70,4 +70,5 @@ const Commentlist = comments => (
 - https://gist.github.com/chantastic/fc9e3853464dffdb1e3c
 - https://redux.vlpt.us/1-2-presentational-and-container-components.html
 - https://tecoble.techcourse.co.kr/post/2021-04-26-presentational-and-container/
--
+- https://velog.io/@dnr6054/%EC%9C%A0%EC%9A%A9%ED%95%9C-%EB%A6%AC%EC%95%A1%ED%8A%B8-%ED%8C%A8%ED%84%B4-5%EA%B0%80%EC%A7%80
+- https://yujonglee.com/socwithhooks
