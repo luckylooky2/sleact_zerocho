@@ -22,7 +22,75 @@ import EachDM from '@components/EachDM';
 // - 그에 따라, 부모 컴포넌트와의 연결고리가 많이 끊어진 추세(리렌더링 관련하여 덜 신경을 쓸 수 있는 효과, 최적화)
 // - High order component(HOC, 고차 컴포넌트, 다른 컴포넌트를 감싸는 컴포넌트)도 마찬가지로 줄어든 추세
 // - ***HOC의 역할? 감싼 컴포넌트에 props를 넣어주는 역할!***
+// - HOC는 컴포넌트를 입력으로 받아 새로운 기능을 추가하거나 변형한 컴포넌트를 반환하는 함수
+// - 컴포넌트 간의 코드 재사용과 추상화를 달성할 수 있음
 // - 이젠 props 없이도 원하는 데이터를 가져올 수 있기 때문에, HOC의 역할도 줄어듦
+// - data 상태와 데이터 가져오기 로직을 관리
+// - 기존 방식
+// function withDataFetching(WrappedComponent) {
+//   return class extends React.Component {
+//     state = {
+//       data: null,
+//       loading: true,
+//       error: null,
+//     };
+
+//     componentDidMount() {
+//       fetchData()
+//         .then((data) => {
+//           this.setState({ data, loading: false });
+//         })
+//         .catch((error) => {
+//           this.setState({ error, loading: false });
+//         });
+//     }
+
+//     render() {
+//       const { data, loading, error } = this.state;
+//       if (loading) {
+//         return <LoadingSpinner />;
+//       } else if (error) {
+//         return <ErrorMessage error={error} />;
+//       } else {
+//         // data 상태를 WrappedComponent로 전달하기 위해 props를 사용
+//         return <WrappedComponent data={data} {...this.props} />;
+//       }
+//     }
+//   };
+// }
+
+// withDataFetching HOC를 사용하여 데이터를 가져오는 컴포넌트를 실제로 생성
+// const DataComponent = withDataFetching(MyComponent);
+
+// props로 전달된 데이터를 사용하여 컴포넌트의 렌더링 로직을 작성
+// HOC에서 가져온 데이터를 컴포넌트에서 활용할 수 있음
+// function MyComponent(props) {
+//   const { data } = props;
+//   // 데이터를 사용하는 나머지 컴포넌트의 렌더링 로직
+//   return <div>{data}</div>;
+// }
+
+// - hook
+// useSWR을 사용하면 HOC 패턴을 대체할 수 있으며, 데이터 가져오기와 관련된 로직을 더욱 간편하게 처리할 수 있음
+// function MyComponent() {
+//   const { data, error } = useSWR('/api/data', fetcher);
+
+//   if (error) {
+//     return <ErrorMessage error={error} />;
+//   }
+
+//   if (!data) {
+//     return <LoadingSpinner />;
+//   }
+
+//   // 데이터를 사용하는 나머지 컴포넌트의 렌더링 로직
+//   return <div>{data}</div>;
+// }
+
+// - hook을 통해 컴포넌트 로직을 재사용 가능한 함수로 분리하는 커스텀 hook을 작성할 수 있음
+// - 이러한 커스텀 hook은 고차 함수와 비슷한 역할을 수행할 수 있음
+// - 컴포넌트 간에 로직을 공유하거나 추상화하여 재사용할 수 있는 함수형 단위로 분리할 수 있음
+
 // props의 다른 용도? 기본적으로 다른 값으로 같은 컴포넌트를 만들기 위함
 
 const DMList: VFC = () => {
@@ -48,10 +116,7 @@ const DMList: VFC = () => {
   const resetCount = useCallback(
     (id) => () => {
       setCountList((list) => {
-        return {
-          ...list,
-          [id]: 0,
-        };
+        return { ...list, [id]: 0 };
       });
     },
     [],
