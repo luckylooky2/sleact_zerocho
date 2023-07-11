@@ -66,26 +66,26 @@ const DirectMessage: VFC = () => {
   // Callback ref를 이용하여, 렌더링 이후에 DOM 노드에 실행시킬 작업을 콜백 함수로 만드는 방법
   // - 어느 정도 문제는 해결되었지만, 현재 컴포넌트에서 사용할 ref object를 생성하지 못함
   // - 일단 사용할 수는 없는 듯
-  // const scrollbarRef = useRef<Scrollbars>(null);
+  const scrollbarRef = useRef<Scrollbars>(null);
   // callback 함수에서 나중에 state로 설정!
-  const [scrollbarRefCopy, setScrollbarRefCopy] = useState<Scrollbars>();
+  // const [scrollbarRefCopy, setScrollbarRefCopy] = useState<Scrollbars>();
   // 이 방식은 callback 함수에서 복사할 수 없음. why?
   // let scrollbarRef: any;
 
-  const scrollbarRefCallback = useCallback(
-    (node) => {
-      if (node !== null) {
-        setScrollbarRefCopy(node);
-        // 이 방식은 callback 함수에서 복사할 수 없음. why?
-        // scrollbarRef = node;
-        if (chatData?.length === 1) {
-          node.scrollToBottom();
-          // console.log(node.getValues());
-        }
-      }
-    },
-    [chatData],
-  );
+  // const scrollbarRefCallback = useCallback(
+  //   (node) => {
+  //     if (node !== null) {
+  //       setScrollbarRefCopy(node);
+  //       // 이 방식은 callback 함수에서 복사할 수 없음. why?
+  //       // scrollbarRef = node;
+  //       if (chatData?.length === 1) {
+  //         node.scrollToBottom();
+  //         // console.log(node.getValues());
+  //       }
+  //     }
+  //   },
+  //   [chatData],
+  // );
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -96,6 +96,10 @@ const DirectMessage: VFC = () => {
   useEffect(() => {
     setNewChatData([]);
   }, [id, chatData]);
+
+  useEffect(() => {
+    scrollbarRef?.current?.scrollToBottom();
+  }, [workspace, id]);
 
   // 여기서 ref가 연결된 이후에 다시 렌더링시키지 못하기 때문에
   // - 직접적인 해결방법은 아니지만, 비슷한 state를 넣는 방법?
@@ -139,7 +143,7 @@ const DirectMessage: VFC = () => {
           if (textareaRef.current) {
             textareaRef.current.style.height = '40px';
           }
-          scrollbarRefCopy?.scrollToBottom();
+          scrollbarRef.current?.scrollToBottom();
         });
         axios
           .post(
@@ -194,13 +198,13 @@ const DirectMessage: VFC = () => {
           // 받은 메시지도 읽은 시간 초기화
           localStorage.setItem(`${workspace}-${id}`, new Date().getTime().toString());
           // 스크롤이 제일 아래있을 때를 제외하고는, 남이 보낸 메시지는 스크롤바를 하단으로 내리지 않음
-          if (scrollbarRefCopy) {
+          if (scrollbarRef.current) {
             if (
-              scrollbarRefCopy.getScrollHeight() <
-              scrollbarRefCopy.getClientHeight() + scrollbarRefCopy.getScrollTop() + 150
+              scrollbarRef.current.getScrollHeight() <
+              scrollbarRef.current.getClientHeight() + scrollbarRef.current.getScrollTop() + 150
             ) {
-              // console.log('scrollToBottom!', scrollbarRefCopy.getValues());
-              scrollbarRefCopy.scrollToBottom();
+              // console.log('scrollToBottom!', scrollbarRef.current.getValues());
+              scrollbarRef.current.scrollToBottom();
             }
           }
         });
@@ -283,10 +287,10 @@ const DirectMessage: VFC = () => {
         <span>{userData.nickname}</span>
       </Header>
       <ChatList
-        ref={scrollbarRefCallback}
-        refCopy={scrollbarRefCopy}
+        ref={scrollbarRef}
         chatSections={chatSections}
         setSize={setSize}
+        size={chatData?.length}
         isEmpty={isEmpty}
         isReachingEnd={isReachingEnd}
       />

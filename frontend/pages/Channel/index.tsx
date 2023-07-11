@@ -54,19 +54,7 @@ const Channel = () => {
   const isEmpty = chatData?.[0]?.length === 0;
   const isReachingEnd = isEmpty || (chatData && chatData[chatData.length - 1]?.length < 20) || false;
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const [scrollbarRefCopy, setScrollbarRefCopy] = useState<Scrollbars>();
-
-  const scrollbarRefCallback = useCallback(
-    (node) => {
-      if (node !== null) {
-        setScrollbarRefCopy(node);
-        if (chatData?.length === 1) {
-          node.scrollToBottom();
-        }
-      }
-    },
-    [chatData],
-  );
+  const scrollbarRef = useRef<Scrollbars>(null);
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -77,6 +65,10 @@ const Channel = () => {
   useEffect(() => {
     setNewChatData([]);
   }, [channel, chatData]);
+
+  useEffect(() => {
+    scrollbarRef.current?.scrollToBottom();
+  }, [workspace, channel]);
 
   const onSubmitForm = useCallback(
     (e) => {
@@ -106,7 +98,7 @@ const Channel = () => {
           if (textareaRef.current) {
             textareaRef.current.style.height = '40px';
           }
-          scrollbarRefCopy?.scrollToBottom();
+          scrollbarRef.current?.scrollToBottom();
         });
         axios
           .post(
@@ -158,13 +150,13 @@ const Channel = () => {
           { revalidate: false },
         ).then(() => {
           localStorage.setItem(`${workspace}-${channel}`, new Date().getTime().toString());
-          if (scrollbarRefCopy) {
+          if (scrollbarRef.current) {
             if (
-              scrollbarRefCopy.getScrollHeight() <
-              scrollbarRefCopy.getClientHeight() + scrollbarRefCopy.getScrollTop() + 150
+              scrollbarRef.current.getScrollHeight() <
+              scrollbarRef.current.getClientHeight() + scrollbarRef.current.getScrollTop() + 150
             ) {
-              // console.log('scrollToBottom!', scrollbarRefCopy.getValues());
-              scrollbarRefCopy.scrollToBottom();
+              // console.log('scrollToBottom!', scrollbarRef.current.getValues());
+              scrollbarRef.current.scrollToBottom();
             }
           }
         });
@@ -255,10 +247,10 @@ const Channel = () => {
         </div>
       </Header>
       <ChatList
-        ref={scrollbarRefCallback}
-        refCopy={scrollbarRefCopy}
+        ref={scrollbarRef}
         chatSections={chatSections}
         setSize={setSize}
+        size={chatData?.length}
         isEmpty={isEmpty}
         isReachingEnd={isReachingEnd}
       />
