@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, VFC, forwardRef, MutableRefObject } from 'react';
+import React, { useCallback, useRef, VFC, forwardRef, MutableRefObject, useState, useEffect } from 'react';
 import { ChatZone, Section, StickyHeader } from '@components/ChatList/style';
 // react-custom-scrollbars
 // 진짜 화면의 스크롤은 없어지고, 가상 커스텀 스크롤을 만들어주는 라이브러리
@@ -52,12 +52,38 @@ const ChatList = forwardRef<Scrollbars, Props>(({ chatSections, setSize, size, i
     [isReachingEnd, isEmpty, ref],
   );
 
+  const [num, setNum] = useState(0);
+  const [isOpen, setIsOpen] = useState(false);
+  let number = 0;
+
   const onLoad = () => {
-    if (size && size === 1) {
-      const current = (ref as MutableRefObject<Scrollbars>)?.current;
-      current?.scrollToBottom();
-    }
+    // if (size && size === 1) {
+    //   const current = (ref as MutableRefObject<Scrollbars>)?.current;
+    //   current?.scrollToBottom();
+    // }
+    setNum((prev) => prev + 1);
+    // console.log(1);
   };
+
+  useEffect(() => {
+    Object.entries(chatSections!)
+      .map((v) => v[1])
+      .flat()
+      .map((v) => {
+        if (v.content.includes('upload')) number++;
+      });
+
+    if (number === num - 20 * size!) {
+      setIsOpen(true);
+      if (size && size === 1) {
+        const current = (ref as MutableRefObject<Scrollbars>)?.current;
+        current?.scrollToBottom();
+      }
+      setNum(0);
+    }
+    // console.log(size, num);
+    console.log(number === num - 20 * size!, number, num - 20 * size!);
+  }, [chatSections, num]);
 
   // 채팅 메시지 그룹화
   // - 날짜 등으로 그룹화되지 않은 raw data를 서버로 부터 받아옴
@@ -79,23 +105,40 @@ const ChatList = forwardRef<Scrollbars, Props>(({ chatSections, setSize, size, i
   // Object key 기준 반복문 : Object.entries().map()
   // - Object.entries() : 객체가 배열로 변환
   return (
-    <ChatZone onLoad={onLoad}>
-      <Scrollbars autoHide ref={ref} onScrollFrame={onScroll}>
-        {chatSections &&
-          Object.entries(chatSections).map(([date, chats]) => {
-            return (
-              <Section className={`section-${date}`} key={date}>
-                <StickyHeader>
-                  <button>{dayjs(date).format('M월 D일 dddd')}</button>
-                </StickyHeader>
-                {chats?.map((chat, index) => (
-                  <Chat key={chat.id + index} data={chat} />
-                ))}
-              </Section>
-            );
-          })}
-      </Scrollbars>
-    </ChatZone>
+    <>
+      <ChatZone onLoad={onLoad} style={{ position: 'relative' }}>
+        {!isOpen ? (
+          <div
+            style={{
+              position: 'absolute',
+              width: '100%',
+              height: '100%',
+              top: '0',
+              left: '0',
+              zIndex: '9999',
+              backgroundColor: 'white',
+            }}
+          ></div>
+        ) : (
+          ''
+        )}
+        <Scrollbars autoHide ref={ref} onScrollFrame={onScroll}>
+          {chatSections &&
+            Object.entries(chatSections).map(([date, chats]) => {
+              return (
+                <Section className={`section-${date}`} key={date}>
+                  <StickyHeader>
+                    <button>{dayjs(date).format('M월 D일 dddd')}</button>
+                  </StickyHeader>
+                  {chats?.map((chat, index) => (
+                    <Chat key={chat.id + index} data={chat} />
+                  ))}
+                </Section>
+              );
+            })}
+        </Scrollbars>
+      </ChatZone>
+    </>
   );
 });
 
