@@ -16,9 +16,10 @@ import dayjs from 'dayjs';
 
 interface Props {
   data: IDM | IChat;
+  onLoad: () => void;
 }
 
-const Chat: VFC<Props> = ({ data }) => {
+const Chat: VFC<Props> = ({ data, onLoad }) => {
   const { workspace, id } = useParams<{ workspace: string; id: string }>();
   // 타입 가드
   // 1. in (js 문법) : 객체 안에 property가 존재하는지?
@@ -36,7 +37,7 @@ const Chat: VFC<Props> = ({ data }) => {
     () =>
       // uploads/ 로 시작하는 경우, <img /> 적용
       data.content.startsWith('uploads/') ? (
-        <img src={`${process.env.REACT_APP_API_URL}/${data.content}`} style={{ maxHeight: 200 }} />
+        <img onLoad={onLoad} src={`${process.env.REACT_APP_API_URL}/${data.content}`} style={{ maxHeight: 200 }} />
       ) : (
         regexifyString({
           input: data.content,

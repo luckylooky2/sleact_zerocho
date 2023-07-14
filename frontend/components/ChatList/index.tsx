@@ -56,14 +56,9 @@ const ChatList = forwardRef<Scrollbars, Props>(({ chatSections, setSize, size, i
   const [isOpen, setIsOpen] = useState(false);
   let number = 0;
 
-  const onLoad = () => {
-    // if (size && size === 1) {
-    //   const current = (ref as MutableRefObject<Scrollbars>)?.current;
-    //   current?.scrollToBottom();
-    // }
+  const onLoad = useCallback(() => {
     setNum((prev) => prev + 1);
-    // console.log(1);
-  };
+  }, []);
 
   useEffect(() => {
     Object.entries(chatSections!)
@@ -73,7 +68,8 @@ const ChatList = forwardRef<Scrollbars, Props>(({ chatSections, setSize, size, i
         if (v.content.includes('upload')) number++;
       });
 
-    if (number === num - 20 * size!) {
+    // 이미지가 하나라도 있을 때 || 이미지가 하나도 없을 때(chatSections가 {}일 때 제외)
+    if ((number && number === num) || (Object.keys(chatSections!).length !== 0 && !number)) {
       setIsOpen(true);
       if (size && size === 1) {
         const current = (ref as MutableRefObject<Scrollbars>)?.current;
@@ -81,8 +77,6 @@ const ChatList = forwardRef<Scrollbars, Props>(({ chatSections, setSize, size, i
       }
       setNum(0);
     }
-    // console.log(size, num);
-    console.log(number === num - 20 * size!, number, num - 20 * size!);
   }, [chatSections, num]);
 
   // 채팅 메시지 그룹화
@@ -104,9 +98,10 @@ const ChatList = forwardRef<Scrollbars, Props>(({ chatSections, setSize, size, i
   // Array element 기준 반복문 : Array.map()
   // Object key 기준 반복문 : Object.entries().map()
   // - Object.entries() : 객체가 배열로 변환
+
   return (
     <>
-      <ChatZone onLoad={onLoad} style={{ position: 'relative' }}>
+      <ChatZone style={{ position: 'relative' }}>
         {!isOpen ? (
           <div
             style={{
@@ -131,7 +126,7 @@ const ChatList = forwardRef<Scrollbars, Props>(({ chatSections, setSize, size, i
                     <button>{dayjs(date).format('M월 D일 dddd')}</button>
                   </StickyHeader>
                   {chats?.map((chat, index) => (
-                    <Chat key={chat.id + index} data={chat} />
+                    <Chat onLoad={onLoad} key={chat.id + index} data={chat} />
                   ))}
                 </Section>
               );
