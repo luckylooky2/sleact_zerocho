@@ -1,5 +1,5 @@
 import React, { useCallback, useRef, VFC, forwardRef, MutableRefObject, useState, useEffect } from 'react';
-import { ChatZone, Section, StickyHeader } from '@components/ChatList/style';
+import { ChatZone, Loading, Section, StickyHeader } from '@components/ChatList/style';
 // react-custom-scrollbars
 // 진짜 화면의 스크롤은 없어지고, 가상 커스텀 스크롤을 만들어주는 라이브러리
 // scroll bar : div 역할 => 가로로 배치되는 것을 처리
@@ -23,6 +23,12 @@ interface Props {
 }
 // chat : 공통 컴포넌트이고, swr로부터 가져오는 데이터가 다르기 때문에 props로 결정
 const ChatList = forwardRef<Scrollbars, Props>(({ chatSections, setSize, size, isEmpty, isReachingEnd }, ref) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [loadedImageCount, setLoadedImageCount] = useState(0);
+  let imageCount = 0;
+  let timer: ReturnType<typeof setTimeout> | null;
+  const stopper = useRef(false);
+
   // reverse infinite scrolling : 과거 채팅 불러오기 구현을 위해
   // - 원래는 아래 방향(infinite scrolling)으로 하는데, 채팅 특성 상 과거 데이터를 불러와야 하므로
 
@@ -33,31 +39,38 @@ const ChatList = forwardRef<Scrollbars, Props>(({ chatSections, setSize, size, i
   // - 기본 onScroll 이벤트의 콜백 함수는 UIEventHandler type : (e : any) => void
   // - 이 라이브러리는 추가로 values parameter를 제공
   // - https://github.com/malte-wessel/react-custom-scrollbars/blob/master/docs/v2-documentation.md#customization
-  const onScroll = useCallback(
-    (values) => {
-      // console.log(values);
-      if (values.scrollTop === 0 && !isReachingEnd && !isEmpty) {
-        // data re-fetching
-        setSize((prev: number) => prev + 1).then(() => {
-          // 스크롤 위치 유지
-          const current = (ref as MutableRefObject<Scrollbars>)?.current;
-          if (current) {
-            // refCopy 안의 values 객체 중에 scroll 관련 값들을 일일이 찾아봐야 함...
-            // console.log(refCopy?.getScrollHeight(), values.scrollHeight);
-            current.scrollTop(current?.getScrollHeight() - values.scrollHeight);
-          }
-        });
-      }
-    },
-    [isReachingEnd, isEmpty, ref],
-  );
 
-  const [num, setNum] = useState(0);
-  const [isOpen, setIsOpen] = useState(false);
-  let number = 0;
+  // scrollTop 값이 크면, 0.1초 간격으로 호출하는 경우 연속으로 호출될 수 있음
+  const handleScroll = (values: any) => {
+    timer = null;
+    if (values.scrollTop < 300 && !isReachingEnd && !isEmpty && !stopper.current) {
+      stopper.current = true;
+      setTimeout(() => {
+        stopper.current = false;
+      }, 200);
+      // data re-fetching
+      setSize((prev: number) => prev + 1).then(() => {
+        // 스크롤 위치 유지
+        const current = (ref as MutableRefObject<Scrollbars>)?.current;
+        if (current) {
+          // refCopy 안의 values 객체 중에 scroll 관련 값들을 일일이 찾아봐야 함...
+          // console.log(refCopy?.getScrollHeight(), values.scrollHeight);
+          current.scrollTop(current?.getScrollHeight() - values.scrollHeight);
+        }
+      });
+    }
+  };
+
+  const onScroll = (values: any) => {
+    if (!timer) {
+      timer = setTimeout(() => {
+        handleScroll(values);
+      }, 100);
+    }
+  };
 
   const onLoad = useCallback(() => {
-    setNum((prev) => prev + 1);
+    setLoadedImageCount((prev) => prev + 1);
   }, []);
 
   useEffect(() => {
@@ -65,19 +78,19 @@ const ChatList = forwardRef<Scrollbars, Props>(({ chatSections, setSize, size, i
       .map((v) => v[1])
       .flat()
       .map((v) => {
-        if (v.content.includes('upload')) number++;
+        if (v.content.includes('upload')) imageCount++;
       });
 
     // 이미지가 하나라도 있을 때 || 이미지가 하나도 없을 때(chatSections가 {}일 때 제외)
-    if ((number && number === num) || (Object.keys(chatSections!).length !== 0 && !number)) {
-      setIsOpen(true);
+    if ((imageCount && imageCount === loadedImageCount) || (Object.keys(chatSections!).length !== 0 && !imageCount)) {
       if (size && size === 1) {
+        setIsOpen(true);
         const current = (ref as MutableRefObject<Scrollbars>)?.current;
         current?.scrollToBottom();
       }
-      setNum(0);
+      setLoadedImageCount(0);
     }
-  }, [chatSections, num]);
+  }, [chatSections, loadedImageCount]);
 
   // 채팅 메시지 그룹화
   // - 날짜 등으로 그룹화되지 않은 raw data를 서버로 부터 받아옴
@@ -101,22 +114,8 @@ const ChatList = forwardRef<Scrollbars, Props>(({ chatSections, setSize, size, i
 
   return (
     <>
-      <ChatZone style={{ position: 'relative' }}>
-        {!isOpen ? (
-          <div
-            style={{
-              position: 'absolute',
-              width: '100%',
-              height: '100%',
-              top: '0',
-              left: '0',
-              zIndex: '9999',
-              backgroundColor: 'white',
-            }}
-          ></div>
-        ) : (
-          ''
-        )}
+      <ChatZone>
+        {!isOpen ? <Loading /> : ''}
         <Scrollbars autoHide ref={ref} onScrollFrame={onScroll}>
           {chatSections &&
             Object.entries(chatSections).map(([date, chats]) => {
