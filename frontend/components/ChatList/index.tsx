@@ -83,8 +83,8 @@ const ChatList = forwardRef<Scrollbars, Props>(({ chatSections, setSize, size, i
 
     // 이미지가 하나라도 있을 때 || 이미지가 하나도 없을 때(chatSections가 {}일 때 제외)
     if ((imageCount && imageCount === loadedImageCount) || (Object.keys(chatSections!).length !== 0 && !imageCount)) {
+      setIsOpen(true);
       if (size && size === 1) {
-        setIsOpen(true);
         const current = (ref as MutableRefObject<Scrollbars>)?.current;
         current?.scrollToBottom();
       }
