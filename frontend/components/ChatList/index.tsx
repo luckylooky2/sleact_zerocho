@@ -54,8 +54,7 @@ const ChatList = forwardRef<Scrollbars, Props>(({ chatSections, setSize, size, i
         const current = (ref as MutableRefObject<Scrollbars>)?.current;
         if (current) {
           // refCopy 안의 values 객체 중에 scroll 관련 값들을 일일이 찾아봐야 함...
-          // console.log(refCopy?.getScrollHeight(), values.scrollHeight);
-          current.scrollTop(current?.getScrollHeight() - values.scrollHeight);
+          current.scrollTop(current?.getScrollHeight() - values.scrollHeight + values.scrollTop);
         }
       });
     }
