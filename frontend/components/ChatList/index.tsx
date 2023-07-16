@@ -3,7 +3,7 @@ import { ChatZone, Loading, Section, StickyHeader } from '@components/ChatList/s
 // react-custom-scrollbars
 // 진짜 화면의 스크롤은 없어지고, 가상 커스텀 스크롤을 만들어주는 라이브러리
 // scroll bar : div 역할 => 가로로 배치되는 것을 처리
-import { Scrollbars } from 'react-custom-scrollbars';
+import { Scrollbars, positionValues } from 'react-custom-scrollbars';
 import { IDM, IChat } from '@typings/db';
 import Chat from '@components/Chat';
 import dayjs from 'dayjs';
@@ -41,7 +41,7 @@ const ChatList = forwardRef<Scrollbars, Props>(({ chatSections, setSize, size, i
   // - https://github.com/malte-wessel/react-custom-scrollbars/blob/master/docs/v2-documentation.md#customization
 
   // scrollTop 값이 크면, 0.1초 간격으로 호출하는 경우 연속으로 호출될 수 있음
-  const handleScroll = (values: any) => {
+  const handleScroll = (values: positionValues) => {
     timer = null;
     if (values.scrollTop < 300 && !isReachingEnd && !isEmpty && !stopper.current) {
       stopper.current = true;
@@ -61,7 +61,7 @@ const ChatList = forwardRef<Scrollbars, Props>(({ chatSections, setSize, size, i
     }
   };
 
-  const onScroll = (values: any) => {
+  const onScroll = (values: positionValues) => {
     if (!timer) {
       timer = setTimeout(() => {
         handleScroll(values);
@@ -113,26 +113,24 @@ const ChatList = forwardRef<Scrollbars, Props>(({ chatSections, setSize, size, i
   // - Object.entries() : 객체가 배열로 변환
 
   return (
-    <>
-      <ChatZone>
-        {!isOpen ? <Loading /> : ''}
-        <Scrollbars autoHide ref={ref} onScrollFrame={onScroll}>
-          {chatSections &&
-            Object.entries(chatSections).map(([date, chats]) => {
-              return (
-                <Section className={`section-${date}`} key={date}>
-                  <StickyHeader>
-                    <button>{dayjs(date).format('M월 D일 dddd')}</button>
-                  </StickyHeader>
-                  {chats?.map((chat, index) => (
-                    <Chat onLoad={onLoad} key={chat.id + index} data={chat} />
-                  ))}
-                </Section>
-              );
-            })}
-        </Scrollbars>
-      </ChatZone>
-    </>
+    <ChatZone>
+      {!isOpen ? <Loading /> : ''}
+      <Scrollbars autoHide ref={ref} onScrollFrame={onScroll}>
+        {chatSections &&
+          Object.entries(chatSections).map(([date, chats]) => {
+            return (
+              <Section className={`section-${date}`} key={date}>
+                <StickyHeader>
+                  <button>{dayjs(date).format('M월 D일 dddd')}</button>
+                </StickyHeader>
+                {chats?.map((chat, index) => (
+                  <Chat onLoad={onLoad} key={chat.id + index} data={chat} />
+                ))}
+              </Section>
+            );
+          })}
+      </Scrollbars>
+    </ChatZone>
   );
 });
 
