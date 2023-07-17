@@ -25,9 +25,12 @@ interface Props {
 const ChatList = forwardRef<Scrollbars, Props>(({ chatSections, setSize, size, isEmpty, isReachingEnd }, ref) => {
   const [isOpen, setIsOpen] = useState(false);
   const [loadedImageCount, setLoadedImageCount] = useState(0);
-  let imageCount = 0;
+  let imageCount: number = 0;
   let timer: ReturnType<typeof setTimeout> | null;
   const stopper = useRef(false);
+  const prevTimestampRef = useRef(0);
+  const prevDeltaYRef = useRef(0);
+  const speedRef = useRef(0);
 
   // reverse infinite scrolling : 과거 채팅 불러오기 구현을 위해
   // - 원래는 아래 방향(infinite scrolling)으로 하는데, 채팅 특성 상 과거 데이터를 불러와야 하므로
@@ -43,7 +46,7 @@ const ChatList = forwardRef<Scrollbars, Props>(({ chatSections, setSize, size, i
   // scrollTop 값이 크면, 0.1초 간격으로 호출하는 경우 연속으로 호출될 수 있음
   const handleScroll = (values: positionValues) => {
     timer = null;
-    if (values.scrollTop < 300 && !isReachingEnd && !isEmpty && !stopper.current) {
+    if (values.scrollTop < 100 && !isReachingEnd && !isEmpty && !stopper.current) {
       stopper.current = true;
       setTimeout(() => {
         stopper.current = false;
@@ -53,8 +56,14 @@ const ChatList = forwardRef<Scrollbars, Props>(({ chatSections, setSize, size, i
         // 스크롤 위치 유지
         const current = (ref as MutableRefObject<Scrollbars>)?.current;
         if (current) {
-          // refCopy 안의 values 객체 중에 scroll 관련 값들을 일일이 찾아봐야 함...
-          current.scrollTop(current?.getScrollHeight() - values.scrollHeight + values.scrollTop);
+          // 스크롤 속도에 따라서 빼주면 자연스럽게 올라가는 효과를 줄 수 있을 듯? (내리는 경우 더하기)
+          console.log(speedRef);
+          current.scrollTop(
+            current?.getScrollHeight() -
+              values.scrollHeight +
+              values.scrollTop -
+              Math.max(10, Math.min(100, 10 * speedRef.current)), // 값을 최소 10, 최대 100으로 제한
+          );
         }
       });
     }
@@ -64,7 +73,7 @@ const ChatList = forwardRef<Scrollbars, Props>(({ chatSections, setSize, size, i
     if (!timer) {
       timer = setTimeout(() => {
         handleScroll(values);
-      }, 100);
+      }, 10);
     }
   };
 
@@ -82,14 +91,36 @@ const ChatList = forwardRef<Scrollbars, Props>(({ chatSections, setSize, size, i
 
     // 이미지가 하나라도 있을 때 || 이미지가 하나도 없을 때(chatSections가 {}일 때 제외)
     if ((imageCount && imageCount === loadedImageCount) || (Object.keys(chatSections!).length !== 0 && !imageCount)) {
-      setIsOpen(true);
-      if (size && size === 1) {
-        const current = (ref as MutableRefObject<Scrollbars>)?.current;
-        current?.scrollToBottom();
-      }
-      setLoadedImageCount(0);
+      setTimeout(() => {
+        setIsOpen(true);
+        if (size && size === 1) {
+          const current = (ref as MutableRefObject<Scrollbars>)?.current;
+          current?.scrollToBottom();
+        }
+        setLoadedImageCount(0);
+      }, 10);
     }
   }, [chatSections, loadedImageCount]);
+
+  const handleWheel = (event: WheelEvent) => {
+    const currentTimestamp = performance.now();
+    const currentDeltaY = event.deltaY;
+
+    const deltaTime = currentTimestamp - prevTimestampRef.current;
+    const deltaDistance = Math.abs(currentDeltaY - prevDeltaYRef.current);
+
+    speedRef.current = deltaDistance / deltaTime;
+
+    prevTimestampRef.current = currentTimestamp;
+    prevDeltaYRef.current = currentDeltaY;
+  };
+
+  useEffect(() => {
+    window.addEventListener('wheel', handleWheel);
+    return () => {
+      window.removeEventListener('wheel', handleWheel);
+    };
+  }, []);
 
   // 채팅 메시지 그룹화
   // - 날짜 등으로 그룹화되지 않은 raw data를 서버로 부터 받아옴
